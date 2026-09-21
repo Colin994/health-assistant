@@ -1,0 +1,39 @@
+# CI 流水线：push(main) / PR / 手动触发
+# 云端从零执行：拉码 → 装 Flutter(stable) → 装 melos → 初始化 16 包
+#              → 生成代码(build_runner) → 全包静态分析 → 全包测试
+# 注意：*.g.dart 等生成物不入库（.gitignore），CI 必须先 gen 再 analyze/test
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch: # 允许 Actions 页面手动触发（调试用）
+
+jobs:
+  analyze-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Setup Melos
+        run: dart pub global activate melos
+
+      - name: Melos bootstrap (16 packages)
+        run: melos bootstrap
+
+      - name: Generate code (build_runner)
+        run: melos run gen
+
+      - name: Analyze (all packages)
+        run: melos run analyze
+
+      - name: Test (all packages)
+        run: melos run test

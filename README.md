@@ -1,5 +1,7 @@
 # Health Assistant · 健康助手
 
+[![CI](https://github.com/Colin994/health-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Colin994/health-assistant/actions/workflows/ci.yml)
+
 一款面向「久坐干预」的健康管理 Flutter 应用：读取 Health Connect / Apple Health 的活动数据，在久坐间隙触发拉伸提醒，形成「数据 → 触发 → 反馈」的健康闭环。
 
 > 状态：开发中（UI 与健康数据链路已落地，业务规则引擎开发中）
