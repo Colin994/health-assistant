@@ -1,0 +1,15 @@
+name: core_database
+description: 数据库支撑模块（drift 库创建升级、表结构；W2 落地表）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints

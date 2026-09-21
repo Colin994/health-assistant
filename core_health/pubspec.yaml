@@ -1,0 +1,24 @@
+name: core_health
+description: 健康数据域（HealthRepository/HealthDataSource，活动分段读取）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  core_model:
+    path: ../core_model
+  base_utils:
+    path: ../base_utils
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+  health: ^13.3.2
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints
+  build_runner: ^2.15.1
+  injectable_generator: ^3.1.3
