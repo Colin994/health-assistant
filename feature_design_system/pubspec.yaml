@@ -1,0 +1,15 @@
+name: feature_design_system
+description: 设计系统模块（ThemeData token 落地 + 通用组件）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints
