@@ -1,0 +1,19 @@
+name: snapshot_test
+description: 快照测试模块（独立成包，避免字体进入主工程，架构文档 2.2.8）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  feature_design_system:
+    path: ../feature_design_system
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints
+  flutter_test:
+    sdk: flutter

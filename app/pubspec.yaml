@@ -1,0 +1,44 @@
+name: app
+description: 健康助手壳模块（入口、DI 配置聚合、路由表、通知深链分发）
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  base_utils:
+    path: ../base_utils
+  core_health:
+    path: ../core_health
+  core_model:
+    path: ../core_model
+  core_network:
+    path: ../core_network
+  domain_all:
+    path: ../domain_all
+  feature_design_system:
+    path: ../feature_design_system
+  feature_home:
+    path: ../feature_home
+  feature_onboarding:
+    path: ../feature_onboarding
+  feature_profile:
+    path: ../feature_profile
+  feature_stretch:
+    path: ../feature_stretch
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints
+  build_runner: ^2.15.1
+  flutter_test:
+    sdk: flutter
+  injectable_generator: ^3.1.3
+
+flutter:
+  uses-material-design: true
