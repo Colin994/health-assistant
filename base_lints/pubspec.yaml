@@ -1,0 +1,10 @@
+name: base_lints
+description: 项目静态检查规则统一管理（analysis_options 聚合）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter_lints: ^6.0.0
