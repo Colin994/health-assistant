@@ -1,0 +1,42 @@
+# Melos / workspace
+.dart_tool/
+.packages
+pubspec_overrides.yaml
+*.iml
+
+# build_runner
+*.g.dart
+*.config.dart
+*.freezed.dart
+*.mocks.dart
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# 平台构建产物
+app/build/
+app/.flutter-plugins*
+
+# melos
+.melos_tool/
+
+# 其他
+*.log
+.DS_Store
+Thumbs.db
+
+# local-only (not for publish)
+internal/
+devtools_options.yaml
+.flutter-plugins*
+

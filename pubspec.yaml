@@ -1,0 +1,52 @@
+name: healthassistant_workspace
+description: 上班族健康助手 Monorepo 工作区（Melos 8 + pub workspace）
+publish_to: none
+environment:
+  sdk: ^3.12.0
+
+workspace:
+  - app
+  - base_lints
+  - base_utils
+  - core_database
+  - core_health
+  - core_model
+  - core_network
+  - core_profile
+  - core_reminder
+  - domain_all
+  - feature_design_system
+  - feature_home
+  - feature_onboarding
+  - feature_profile
+  - feature_stretch
+  - snapshot_test
+
+dev_dependencies:
+  melos: ^8.3.0
+
+melos:
+  command:
+    bootstrap:
+      # pub workspace 模式下依赖由根 `dart pub get` 统一解析，无需链接
+      runPubGetInParallel: false
+
+  scripts:
+    analyze:
+      description: 全模块静态分析（全部 16 个包；无 packageFilters 即不弹选择提示）
+      exec: dart analyze .
+
+    gen:
+      description: 运行 build_runner 代码生成（injectable 等，仅含 build_runner 的包）
+      # --force-jit：中文路径下 build_runner 的 AOT 编译会失败，强制 JIT
+      run: >
+        melos exec --depends-on="build_runner" --
+        "dart run build_runner build --delete-conflicting-outputs --force-jit"
+
+    test:
+      description: 全模块测试（仅含 test/ 目录的包）
+      run: melos exec --dir-exists="test" -- "flutter test"
+
+    clean:
+      description: 清理全部生成物
+      run: melos exec -- "flutter clean"
