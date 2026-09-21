@@ -1,0 +1,21 @@
+name: feature_profile
+description: 我的模块（我的 + 提醒设置，设计稿 07–08；W2 落地）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  feature_design_system:
+    path: ../feature_design_system
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints
+  build_runner: ^2.15.1
+  injectable_generator: ^3.1.3
