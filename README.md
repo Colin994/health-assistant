@@ -30,11 +30,13 @@
 
 ## 🖼 截图
 
-| 引导 | 首页（走查） | 拉伸（走查） |
-|---|---|---|
-| ![onboarding](design/ui_walk/ui01.png) | ![home](design/ui_walk/home.png) | ![stretch](design/ui_walk/st.png) |
+| 引导 | 今日（首页） |
+|---|---|
+| ![引导页](design/ui_walk/01-onboarding.png) | ![今日首页](design/ui_walk/02-home.png) |
 
-完整 8 屏设计稿与实现走查见 `design/ui_walk/`。
+<!-- TODO: 补拉伸页截图存为 design/ui_walk/03-stretch.png 后，在上表追加第三列「拉伸」 -->
+
+完整 8 屏设计稿与实现走查记录见 `design/ui_walk/`（过程留档在 `archive/`）。
 
 ## 🛠 技术栈
 
