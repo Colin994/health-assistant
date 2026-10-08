@@ -40,3 +40,7 @@ internal/
 devtools_options.yaml
 .flutter-plugins*
 
+
+# 内部文档（不随公开仓库发布，本地保留）
+/docs/
+/代码设计规范/

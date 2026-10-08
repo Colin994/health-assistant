@@ -26,7 +26,7 @@
 - **DI**：get_it + injectable microPackage 模式——库包自生成 Module，app 壳统一聚合注册
 - **错误处理**：Result 模式（Success/Failure）；Repository 接口不暴露插件类型，保证数据源可替换
 - **模块四分法**：`base_*`（基础设施）/ `feature_*`（功能）/ `domain_*`（用例）/ `core_*`（数据与模型）
-- **规范**：架构总纲 + 命名规范（含反例速查表）双文档约束所有代码（见 `代码设计规范/`）
+- **规范**：架构总纲 + 命名规范（含反例速查表）双文档约束所有代码
 
 ## 🖼 截图
 
@@ -52,16 +52,6 @@ cd app && flutter run
 
 > Health Connect 需 Android 14+（或支持 HC 的设备）并安装 Health Connect；iOS 需在 Xcode 开启 HealthKit capability。
 
-## 📚 文档体系
-
-| 文档 | 版本 | 说明 |
-|---|---|---|
-| `docs/产品需求文档PRD.md` | v0.2 | 功能需求、北极星指标、路线 |
-| `docs/交互设计文档.md` | v0.2 | 8 页线框、状态清单、文案规范 |
-| `docs/技术设计文档.md` | v0.2 | 模块映射、UseCase 清单、里程碑 |
-| `docs/设计规范.md` | v1 | 设计 token：色/字/形/距 |
-| `代码设计规范/` | — | 架构总纲 + 命名规范（代码实现的强制约束） |
-
 ## 🗺 Roadmap
 
 - 久坐规则引擎与提醒链路（core_reminder）
@@ -71,4 +61,4 @@ cd app && flutter run
 
 ## 🤖 开发方式
 
-架构设计、技术决策与验收由本人制定并把关，AI 辅助执行编码与设计稿生成。关键平台问题（如 Health Connect 授权链路、构建工具链）的排查与决策过程记录在提交历史与代码设计规范文档中。
+架构设计、技术决策与验收由本人制定并把关，AI 辅助执行编码与设计稿生成。关键平台问题（如 Health Connect 授权链路、构建工具链）的排查与决策过程记录在提交历史中。
