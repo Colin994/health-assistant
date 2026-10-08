@@ -30,11 +30,9 @@
 
 ## 🖼 截图
 
-| 引导 | 今日（首页） |
-|---|---|
-| ![引导页](design/ui_walk/01-onboarding.png) | ![今日首页](design/ui_walk/02-home.png) |
-
-<!-- TODO: 补拉伸页截图存为 design/ui_walk/03-stretch.png 后，在上表追加第三列「拉伸」 -->
+| 引导 | 今日（首页） | 拉伸 |
+|---|---|---|
+| ![引导页](design/ui_walk/01-onboarding.png) | ![今日首页](design/ui_walk/02-home.png) | ![拉伸](design/ui_walk/03-stretch.png) |
 
 完整 8 屏设计稿与实现走查记录见 `design/ui_walk/`（过程留档在 `archive/`）。
 
