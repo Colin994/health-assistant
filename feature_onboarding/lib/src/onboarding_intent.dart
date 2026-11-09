@@ -25,16 +25,10 @@ final class TagToggled extends OnboardingIntent {
   final String label;
 }
 
-/// 点击「去授权」（03 页健康数据卡片）。
-///
-/// W2 接 HealthRepository.requestPermissions；当前 UI 先落选中态。
-final class RequestHealthAccess extends OnboardingIntent {
-  const RequestHealthAccess();
-}
-
 /// 点击「去开启」（03 页通知卡片）。
 ///
 /// W3 通知链路接入后接系统通知设置；当前 UI 先落选中态。
+/// 注：健康数据授权已随手表连接隐藏为设置页 Pro 功能，不进引导流。
 final class RequestNotifications extends OnboardingIntent {
   const RequestNotifications();
 }

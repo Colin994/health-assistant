@@ -5,11 +5,25 @@ sealed class ReminderSettingsIntent {
   const ReminderSettingsIntent();
 }
 
-/// 切换提醒密度档位。
+/// 切换久坐拉伸密度档位。
 final class DensitySelected extends ReminderSettingsIntent {
   const DensitySelected(this.density);
 
   final RemindDensity density;
+}
+
+/// 切换喝水提醒开关（W2 接倒计时引擎）。
+final class WaterReminderToggled extends ReminderSettingsIntent {
+  const WaterReminderToggled(this.enabled);
+
+  final bool enabled;
+}
+
+/// 切换护眼提醒开关（W2 接倒计时引擎）。
+final class EyeReminderToggled extends ReminderSettingsIntent {
+  const EyeReminderToggled(this.enabled);
+
+  final bool enabled;
 }
 
 /// 点击静音时段（W2 接时间选择器）。

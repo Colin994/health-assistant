@@ -32,10 +32,23 @@ class HealthRepositoryImpl implements HealthRepository {
   }
 
   @override
-  Future<bool> writeTestSteps({
+  Future<int> fetchStepsTotal({
+    required DateTime from,
+    required DateTime to,
+  }) => _dataSource.fetchStepsTotal(from: from, to: to);
+
+  @override
+  Future<bool> writeSteps({
     required DateTime start,
     required DateTime end,
     required int count,
   }) =>
-      _dataSource.writeTestSteps(start: start, end: end, count: count);
+      _dataSource.writeSteps(start: start, end: end, count: count);
+
+  @override
+  Future<bool> deleteSteps({
+    required DateTime from,
+    required DateTime to,
+  }) =>
+      _dataSource.deleteSteps(from: from, to: to);
 }

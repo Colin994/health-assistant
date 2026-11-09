@@ -6,4 +6,3 @@ export 'src/home_screen.dart';
 export 'src/home_screen_route.dart';
 export 'src/home_state.dart';
 export 'src/home_view_model.dart';
-export 'src/injector.module.dart';

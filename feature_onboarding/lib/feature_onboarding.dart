@@ -11,4 +11,3 @@ export 'src/onboarding_screen.dart';
 export 'src/onboarding_screen_route.dart';
 export 'src/onboarding_state.dart';
 export 'src/onboarding_view_model.dart';
-export 'src/injector.module.dart';

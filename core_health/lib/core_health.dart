@@ -10,4 +10,5 @@ export 'src/health_repository.dart';
 export 'src/health_repository_impl.dart';
 export 'src/data/health_data_source.dart';
 export 'src/data/health_data_source_impl.dart';
+export 'src/steps/step_session_collector.dart';
 export 'src/injector.module.dart';

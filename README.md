@@ -2,15 +2,15 @@
 
 [![CI](https://github.com/Colin994/health-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/Colin994/health-assistant/actions/workflows/ci.yml)
 
-一款面向「久坐干预」的健康管理 Flutter 应用：读取 Health Connect / Apple Health 的活动数据，在久坐间隙触发拉伸提醒，形成「数据 → 触发 → 反馈」的健康闭环。
+一款面向「久坐干预」的健康管理 Flutter 应用：以本地倒计时提醒（久坐拉伸 / 喝水 / 护眼）为核心，手机传感器实时计步辅助，形成「提醒 → 拉伸 → 反馈 → 自适应」的健康闭环；智能手表连接为 Pro 期规划（经 Health Connect / HealthKit 读取活动数据）。
 
-> 状态：开发中（UI 与健康数据链路已落地，业务规则引擎开发中）
+> 状态：开发中（8 屏 UI 与手机传感器计步已落地，倒计时提醒引擎开发中）
 
 ## ✨ 已实现
 
-- **8 屏完整 UI**：首启引导 / 首页 / 拉伸 / 我的，双 Tab 架构，逐屏走查通过
+- **8 屏完整 UI**：首启引导 / 今日 / 拉伸 / 我的 / 设置，三 Tab 架构，逐屏走查通过
 - **自建设计系统**：设计 token（色/字/形/距）落地为 ThemeData，8 屏设计稿经版式审计
-- **健康数据链路**：Health Connect（Android）/ HealthKit（iOS）读取近 24h 活动分段；授权与读写闭环已在模拟器验证
+- **手机传感器计步**：Step Detector 逐 tick 采集（EventChannel + SensorManager），当日基线本地持久化续计，真机验证与 MIUI 计步一致
 - **工程化**：Melos 16 包 monorepo，统一 lint 规则，一键 analyze / gen / test
 
 ## 📐 架构
@@ -23,7 +23,7 @@
 | 领域层 | UseCase | `domain_all` |
 | 数据层 | Repository / DataSource | `core_health` 等 |
 
-- **DI**：get_it + injectable microPackage 模式——库包自生成 Module，app 壳统一聚合注册
+- **DI/状态**：双容器边界——get_it + injectable 管 domain/core（UseCase/Repository，microPackage 模式，app 壳聚合注册）；flutter_riverpod 3 管表现层（Notifier 六件套：ScreenRoute/Screen/VM/State/Intent/Event），provider 内可取 get_it，反向禁止
 - **错误处理**：Result 模式（Success/Failure）；Repository 接口不暴露插件类型，保证数据源可替换
 - **模块四分法**：`base_*`（基础设施）/ `feature_*`（功能）/ `domain_*`（用例）/ `core_*`（数据与模型）
 - **规范**：架构总纲 + 命名规范（含反例速查表）双文档约束所有代码
@@ -38,7 +38,7 @@
 
 ## 🛠 技术栈
 
-Flutter / Dart ^3.12 · Melos 8 workspace · get_it + injectable 3 · health 13.x · drift（规划中）· flutter_lints 6
+Flutter / Dart ^3.12 · Melos 8 workspace · flutter_riverpod 3（表现层）· get_it + injectable 3（领域/数据层）· shared_preferences · health 13.x（Pro 期手表连接启用）· drift（规划中）· flutter_lints 6
 
 ## 🚀 运行
 
@@ -50,7 +50,7 @@ melos run test       # 全模块测试
 cd app && flutter run
 ```
 
-> Health Connect 需 Android 14+（或支持 HC 的设备）并安装 Health Connect；iOS 需在 Xcode 开启 HealthKit capability。
+> 计步需系统「身体活动」权限（应用内引导授权）。Health Connect / HealthKit 为 Pro 期手表连接的数据通道，当前版本不依赖。
 
 ## 🗺 Roadmap
 

@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'reminder_settings_intent.dart';
 import 'reminder_settings_state.dart';
 
-/// 提醒设置页（设计稿 08）：密度三档 + 静音时段 + 测试提醒。
+/// 提醒设置页（设计稿 08 v5）：久坐拉伸 + 喝水 + 护眼三类倒计时提醒
+/// + 静音时段 + 测试提醒。
 class ReminderSettingsScreen extends StatelessWidget {
   const ReminderSettingsScreen({
     super.key,
@@ -25,7 +26,7 @@ class ReminderSettingsScreen extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageMargin),
           children: [
             const SizedBox(height: AppSpacing.sm),
-            const Text('提醒密度', style: AppTypography.subtitle),
+            const Text('久坐拉伸', style: AppTypography.subtitle),
             const SizedBox(height: AppSpacing.sm),
             Row(
               children: [
@@ -43,6 +44,18 @@ class ReminderSettingsScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
+            _ToggleCard(
+              title: '喝水提醒',
+              subtitle: '每 45 分钟 · 一小杯就好',
+              value: state.waterReminderEnabled,
+              onChanged: (v) => onIntent(WaterReminderToggled(v)),
+            ),
+            _ToggleCard(
+              title: '护眼提醒',
+              subtitle: '20-20-20 · 每 20 分钟远眺 20 秒',
+              value: state.eyeReminderEnabled,
+              onChanged: (v) => onIntent(EyeReminderToggled(v)),
+            ),
             _SettingsCard(
               title: '静音时段',
               subtitle: state.muteWindowLabel,
@@ -66,7 +79,7 @@ class ReminderSettingsScreen extends StatelessWidget {
                   Text(state.currentLabel, style: AppTypography.bodyMedium),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    '自动降频：负面反馈过多时会自动放宽提醒。',
+                    '三类提醒共享静音时段；自动降频：负面反馈过多时会自动放宽提醒。',
                     style: AppTypography.caption.copyWith(
                       color: AppColors.textSecondary,
                     ),
@@ -138,6 +151,57 @@ class _DensityOption extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// 带开关的提醒卡片（喝水 / 护眼，设计稿 08 v5）。
+class _ToggleCard extends StatelessWidget {
+  const _ToggleCard({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTypography.bodyMedium),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  subtitle,
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            activeThumbColor: AppColors.primary,
+            onChanged: onChanged,
+          ),
+        ],
       ),
     );
   }

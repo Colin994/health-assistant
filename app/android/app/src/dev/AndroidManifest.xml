@@ -1,0 +1,40 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- dev 渠道专属：Health Connect 验证链路（Pro 期手表连接的开发基础）。
+         master 正式版不声明任何 HC 权限（2026-11-09 W1 传感器清理决策）。
+
+         Health Connect：最小采集集，只读（步数/锻炼记录，不碰心率睡眠）。
+         WORKOUT/EXERCISE 类型在 Health Connect 均对应 READ_EXERCISE；
+         WRITE_STEPS 供 HC 读写链路联调造数用。 -->
+    <uses-permission android:name="android.permission.health.READ_STEPS" />
+    <uses-permission android:name="android.permission.health.READ_EXERCISE" />
+    <uses-permission android:name="android.permission.health.WRITE_STEPS" />
+
+    <application>
+        <!-- Health Connect 权限说明页入口 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+            </intent-filter>
+        </activity>
+        <!-- Health Connect 隐私政策回链（Pro 期接路由后指向隐私政策页） -->
+        <activity-alias
+            android:name="ViewPermissionUsageActivity"
+            android:exported="true"
+            android:targetActivity=".MainActivity"
+            android:permission="android.permission.START_VIEW_PERMISSION_USAGE">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW_PERMISSION_USAGE" />
+                <category android:name="android.intent.category.HEALTH_PERMISSIONS" />
+            </intent-filter>
+        </activity-alias>
+    </application>
+    <queries>
+        <!-- 检查 Health Connect 是否安装 -->
+        <package android:name="com.google.android.apps.healthdata" />
+        <intent>
+            <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+        </intent>
+    </queries>
+</manifest>

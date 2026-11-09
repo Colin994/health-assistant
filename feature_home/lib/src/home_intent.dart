@@ -3,7 +3,7 @@ sealed class HomeIntent {
   const HomeIntent();
 }
 
-/// 下拉/点击刷新（W2 接 FetchSegmentsUseCase 重算预估）。
+/// 下拉/点击刷新（重读本地当日步数基线；W2 接倒计时引擎后同时重算下次提醒）。
 final class RefreshPressed extends HomeIntent {
   const RefreshPressed();
 }

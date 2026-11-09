@@ -5,14 +5,18 @@ import 'package:flutter/foundation.dart';
 class HomeState {
   const HomeState({
     this.dataSourceLabel = '',
+    this.todaySteps,
     this.reminderCount = 0,
     this.completedCount = 0,
     this.nextEstimateText = '',
     this.records = const [],
   });
 
-  /// 数据源状态行（如「Apple Watch · 数据更新 5 分钟前」）。
+  /// 数据源状态行（如「传感器直读（L4）· 实时计步中」）。
   final String dataSourceLabel;
+
+  /// 今日步数（L4 传感器直读；null = 采集未启动/通道不可用）。
+  final int? todaySteps;
 
   /// 今天已提醒次数。
   final int reminderCount;
@@ -28,6 +32,7 @@ class HomeState {
 
   HomeState copyWith({
     String? dataSourceLabel,
+    int? todaySteps,
     int? reminderCount,
     int? completedCount,
     String? nextEstimateText,
@@ -35,6 +40,7 @@ class HomeState {
   }) {
     return HomeState(
       dataSourceLabel: dataSourceLabel ?? this.dataSourceLabel,
+      todaySteps: todaySteps ?? this.todaySteps,
       reminderCount: reminderCount ?? this.reminderCount,
       completedCount: completedCount ?? this.completedCount,
       nextEstimateText: nextEstimateText ?? this.nextEstimateText,

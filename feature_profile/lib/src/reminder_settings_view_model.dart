@@ -1,24 +1,26 @@
-import 'package:flutter/foundation.dart';
-import 'package:injectable/injectable.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'reminder_settings_intent.dart';
 import 'reminder_settings_state.dart';
 
-/// ReminderSettingsScreen 的状态持有者（架构文档 3.2）。
+/// ReminderSettingsScreen 的状态持有者（Riverpod Notifier，架构文档 3.2）。
 ///
 /// W2 接 core_reminder 的规则配置 CRUD 后替换为持久化读写。
-@injectable
-class ReminderSettingsViewModel extends ChangeNotifier {
-  ReminderSettingsState _state = const ReminderSettingsState();
-
-  /// 当前视图数据。
-  ReminderSettingsState get state => _state;
+class ReminderSettingsViewModel extends Notifier<ReminderSettingsState> {
+  @override
+  ReminderSettingsState build() => const ReminderSettingsState();
 
   /// 统一的 Intent 入口（Screen 经 onIntent 回调转发至此）。
   void handleIntent(ReminderSettingsIntent intent) {
     switch (intent) {
       case DensitySelected(:final density):
-        _setState(_state.copyWith(density: density));
+        state = state.copyWith(density: density);
+      case WaterReminderToggled(:final enabled):
+        // W2：接倒计时引擎（重启/停用喝水计时器）+ 持久化
+        state = state.copyWith(waterReminderEnabled: enabled);
+      case EyeReminderToggled(:final enabled):
+        // W2：接倒计时引擎（重启/停用护眼计时器）+ 持久化
+        state = state.copyWith(eyeReminderEnabled: enabled);
       case MuteWindowTapped():
         // W2：静音时段选择器
         break;
@@ -30,11 +32,10 @@ class ReminderSettingsViewModel extends ChangeNotifier {
         break;
     }
   }
-
-  void _setState(ReminderSettingsState next) {
-    if (_state != next) {
-      _state = next;
-      notifyListeners();
-    }
-  }
 }
+
+/// 提醒设置页状态容器（push 进入：pop 后状态随 provider 自动销毁）。
+final reminderSettingsViewModelProvider =
+    NotifierProvider<ReminderSettingsViewModel, ReminderSettingsState>(
+      ReminderSettingsViewModel.new,
+    );

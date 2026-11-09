@@ -1,7 +1,6 @@
 /// feature_profile：我的 + 提醒设置模块（设计稿 07–08）。
 library;
 
-export 'src/injector.module.dart';
 export 'src/profile_intent.dart';
 export 'src/profile_screen.dart';
 export 'src/profile_screen_route.dart';

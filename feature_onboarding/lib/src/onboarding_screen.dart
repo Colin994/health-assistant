@@ -19,13 +19,44 @@ class OnboardingScreen extends StatelessWidget {
   final ValueChanged<OnboardingIntent> onIntent;
 
   /// 02 页健康标签静态选项（label + 辅助说明）。
+  /// 标签选项（静态 UI 数据，设计稿 02 v6）。
+  ///
+  /// 标签 → 提醒类型映射（W2 LLM Prompt 按提醒类型带对应子集）：
+  /// 颈椎不适/肩颈僵硬/腰部劳损/只是久坐 → 久坐拉伸；
+  /// 眼疲劳 → 护眼提醒；常忘喝水/咽干易上火 → 喝水提醒。
   static const tagOptions = [
     (label: '颈椎不适', hint: '工作中提醒'),
     (label: '肩颈僵硬', hint: '工作中提醒'),
     (label: '腰部劳损', hint: '工作中提醒'),
     (label: '眼疲劳', hint: '工作中提醒'),
-    (label: '只是久坐，没特殊不适', hint: ''),
+    (label: '常忘喝水', hint: '到点提醒接水'),
+    (label: '咽干易上火', hint: '文案更温和'),
+    (label: noConditionTag, hint: ''),
   ];
+
+  /// 「只是久坐，没特殊不适」兜底项（与身体状况类互斥）。
+  static const noConditionTag = '只是久坐，没特殊不适';
+
+  /// 身体状况类标签：与 [noConditionTag] 互斥；
+  /// 习惯类（常忘喝水）独立，可与任一项共存。
+  static const bodyConditionTags = {
+    '颈椎不适',
+    '肩颈僵硬',
+    '腰部劳损',
+    '眼疲劳',
+    '咽干易上火',
+  };
+
+  /// 标签 → 预览示例文案（设计稿 02：选中后实时预览，让用户立刻感知个性化）。
+  static const tagPreviewCopy = {
+    '颈椎不适': '“低头一小时了，抬头看看远处吧——顺便做个收下巴，30 秒”',
+    '肩颈僵硬': '“肩膀又硬成石头了吧？画个圈放松一下，60 秒就好”',
+    '腰部劳损': '“腰有点僵了——站起来轻轻侧个身，40 秒”',
+    '眼疲劳': '“盯屏 20 分钟了，看看 6 米外的远处，坚持 20 秒”',
+    '常忘喝水': '“到点啦——起来接杯水，顺便走两步，一小口就好”',
+    '咽干易上火': '“嗓子有点干吧？抿两口温水，别喝烫的”',
+    noConditionTag: '“坐满 55 分钟啦——起来活动 1 分钟就好”',
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +82,7 @@ class OnboardingScreen extends StatelessWidget {
   }
 }
 
-/// 设计稿 01 首启-价值：手环通知卡模拟 + 主张 + 三卖点。
+/// 设计稿 01 首启-价值：倒计时通知卡模拟 + 主张 + 三卖点。
 class _ValueStep extends StatelessWidget {
   const _ValueStep({super.key, required this.onIntent});
 
@@ -81,14 +112,14 @@ class _ValueStep extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.md),
-              const _WatchNotificationCard(),
+              const _CountdownNotificationCard(),
               const SizedBox(height: AppSpacing.xl),
               const Text('最懂你工作节奏的', style: AppTypography.display),
               const SizedBox(height: AppSpacing.lg),
               const _SellingPoint(
                 icon: Icons.schedule,
                 title: '时机准',
-                description: '手环判断你真的久坐了，不是定时闹钟',
+                description: '倒计时到了才提醒，不打断心流',
               ),
               const _SellingPoint(
                 icon: Icons.favorite_border,
@@ -98,7 +129,7 @@ class _ValueStep extends StatelessWidget {
               const _SellingPoint(
                 icon: Icons.bolt_outlined,
                 title: '零负担',
-                description: '1 分钟拉伸，不用换衣服不用打卡',
+                description: '久坐、喝水、护眼，1 分钟微休息',
               ),
               const Spacer(),
               FilledButton(
@@ -124,9 +155,12 @@ class _ValueStep extends StatelessWidget {
   }
 }
 
-/// 设计稿 01 顶部：模拟一条手环提醒通知。
-class _WatchNotificationCard extends StatelessWidget {
-  const _WatchNotificationCard();
+/// 设计稿 01 顶部：模拟一条倒计时提醒通知。
+///
+/// v5：手表连接暂未实现，卖点改为本地倒计时；手环场景
+/// 由设置页「连接智能手表（Pro）」承接。
+class _CountdownNotificationCard extends StatelessWidget {
+  const _CountdownNotificationCard();
 
   @override
   Widget build(BuildContext context) {
@@ -147,7 +181,7 @@ class _WatchNotificationCard extends StatelessWidget {
               shape: BoxShape.circle,
             ),
             child: const Icon(
-              Icons.watch_later_outlined,
+              Icons.timer_outlined,
               size: 22,
               color: AppColors.primary,
             ),
@@ -245,7 +279,7 @@ class _TagsStep extends StatelessWidget {
                   horizontal: AppSpacing.pageMargin,
                 ),
                 children: [
-                  const Text('你的身体状况', style: AppTypography.display),
+                  const Text('你的身体状况与习惯', style: AppTypography.display),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     '让我们更懂你 · 可随时修改',
@@ -287,8 +321,11 @@ class _TagsStep extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      '“低头一小时了，抬头看看远处吧——'
-                      '顺便做个收下巴，30 秒”',
+                      // 按首个选中标签实时预览（无选中时用兜底项示例）。
+                      OnboardingScreen.tagPreviewCopy[
+                          state.selectedTags.isEmpty
+                              ? OnboardingScreen.noConditionTag
+                              : state.selectedTags.first]!,
                       style: AppTypography.body.copyWith(height: 24 / 14),
                     ),
                   ),
@@ -402,7 +439,9 @@ class _TagChip extends StatelessWidget {
   }
 }
 
-/// 设计稿 03 首启-权限引导：两步授权卡 + 免责说明。
+/// 设计稿 03 开启提醒：通知授权卡 + Pro 手表预告卡 + 免责说明。
+///
+/// v5：手表连接未实现，隐藏为设置页 Pro 付费功能；引导页仅预告。
 class _PermissionsStep extends StatelessWidget {
   const _PermissionsStep({
     super.key,
@@ -436,24 +475,15 @@ class _PermissionsStep extends StatelessWidget {
                   horizontal: AppSpacing.pageMargin,
                 ),
                 children: [
-                  const Text('连接你的健康数据', style: AppTypography.display),
+                  const Text('开启提醒', style: AppTypography.display),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
-                    '两步授权，之后就不需要再管了',
+                    '开启通知，倒计时到了准时提醒你',
                     style: AppTypography.body.copyWith(
                       color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
-                  _PermissionCard(
-                    icon: Icons.favorite_outline,
-                    title: '健康数据',
-                    description: '读取活动与久坐记录，仅此而已。',
-                    actionLabel: '去授权',
-                    granted: state.healthGranted,
-                    onTap: () => onIntent(const RequestHealthAccess()),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
                   _PermissionCard(
                     icon: Icons.notifications_none,
                     title: '通知',
@@ -462,6 +492,8 @@ class _PermissionsStep extends StatelessWidget {
                     granted: state.notificationGranted,
                     onTap: () => onIntent(const RequestNotifications()),
                   ),
+                  const SizedBox(height: AppSpacing.md),
+                  const _ProWatchCard(),
                   const SizedBox(height: AppSpacing.xl),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -477,15 +509,15 @@ class _PermissionsStep extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              '敏感数据；我们只读取活动与久坐记录，'
-                              '不采集心率、睡眠等',
+                              '提醒由本地倒计时生成，不采集健康数据；'
+                              '连接手表（Pro）上线后才读取活动记录。',
                               style: AppTypography.caption.copyWith(
                                 color: AppColors.textSecondary,
                               ),
                             ),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
-                              '数据仅用于为你生成提醒。',
+                              '久坐 · 喝水 · 护眼，三类提醒均可随时关闭。',
                               style: AppTypography.caption.copyWith(
                                 color: AppColors.textSecondary,
                               ),
@@ -525,6 +557,103 @@ class _PermissionsStep extends StatelessWidget {
   }
 }
 
+/// 设计稿 03 卡片二：连接智能手表 Pro 预告（纯展示，无授权态）。
+class _ProWatchCard extends StatelessWidget {
+  const _ProWatchCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: const BoxDecoration(
+              color: AppColors.primarySurface,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.watch_outlined,
+              size: 22,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // 窄屏（360dp）下标题+徽标+右侧按钮同时在场会溢出：
+                    // 标题 Flexible 兜底，徽标恒可见。
+                    Flexible(
+                      child: Text(
+                        '连接智能手表',
+                        style: AppTypography.subtitle,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 2,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(AppRadius.pill),
+                        ),
+                      ),
+                      child: Text(
+                        'PRO',
+                        style: AppTypography.micro.copyWith(
+                          color: AppColors.onPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '更准的久坐判定 · 付费功能，即将上线',
+                  style: AppTypography.caption.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          TextButton(
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              minimumSize: const Size(40, 32),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
+            ),
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Pro 功能 · 即将上线，敬请期待')),
+              );
+            },
+            child: Text('了解更多', style: AppTypography.captionMedium),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _PermissionCard extends StatelessWidget {
   const _PermissionCard({
     required this.icon,
@@ -534,7 +663,6 @@ class _PermissionCard extends StatelessWidget {
     required this.granted,
     required this.onTap,
   });
-
   final IconData icon;
   final String title;
   final String description;

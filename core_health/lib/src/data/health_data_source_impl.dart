@@ -63,12 +63,28 @@ class HealthDataSourceImpl implements HealthDataSource {
   }
 
   @override
-  Future<bool> writeTestSteps({
+  Future<int> fetchStepsTotal({
+    required DateTime from,
+    required DateTime to,
+  }) async {
+    final points = await _health.getHealthDataFromTypes(
+      types: [HealthDataType.STEPS],
+      startTime: from,
+      endTime: to,
+    );
+    return points.fold<int>(
+      0,
+      (sum, point) => sum + _numericValueOf(point),
+    );
+  }
+
+  @override
+  Future<bool> writeSteps({
     required DateTime start,
     required DateTime end,
     required int count,
   }) async {
-    // 写入需先申请 WRITE 权限（会弹 HC 授权页，仅 demo 造数场景触发）
+    // 写入需 WRITE 权限（首次会弹 HC 授权页，此后已授权则直接通过）
     final granted = await _health.requestAuthorization(
       [HealthDataType.STEPS],
       permissions: [HealthDataAccess.READ_WRITE],
@@ -80,6 +96,23 @@ class HealthDataSourceImpl implements HealthDataSource {
       startTime: start,
       endTime: end,
     );
+  }
+
+  @override
+  Future<bool> deleteSteps({
+    required DateTime from,
+    required DateTime to,
+  }) {
+    return _health.delete(
+      type: HealthDataType.STEPS,
+      startTime: from,
+      endTime: to,
+    );
+  }
+
+  int _numericValueOf(HealthDataPoint point) {
+    final value = point.value;
+    return value is NumericHealthValue ? value.numericValue.round() : 0;
   }
 
   ActivitySegment _toSegment(HealthDataPoint point) {

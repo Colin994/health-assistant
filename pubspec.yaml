@@ -19,6 +19,7 @@ workspace:
   - feature_home
   - feature_onboarding
   - feature_profile
+  - feature_settings
   - feature_stretch
   - snapshot_test
 
@@ -33,7 +34,7 @@ melos:
 
   scripts:
     analyze:
-      description: 全模块静态分析（全部 16 个包；无 packageFilters 即不弹选择提示）
+      description: 全模块静态分析（全部 17 个包；无 packageFilters 即不弹选择提示）
       exec: dart analyze .
 
     gen:

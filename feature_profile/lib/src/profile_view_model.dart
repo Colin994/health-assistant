@@ -1,16 +1,12 @@
-import 'package:flutter/foundation.dart';
-import 'package:injectable/injectable.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'profile_intent.dart';
 import 'profile_state.dart';
 
-/// ProfileScreen 的状态持有者（架构文档 3.2）。
-@injectable
-class ProfileViewModel extends ChangeNotifier {
-  ProfileState _state = const ProfileState(tags: ['颈椎不适', '眼疲劳']);
-
-  /// 当前视图数据。
-  ProfileState get state => _state;
+/// ProfileScreen 的状态持有者（Riverpod Notifier，架构文档 3.2）。
+class ProfileViewModel extends Notifier<ProfileState> {
+  @override
+  ProfileState build() => const ProfileState(tags: ['颈椎不适', '眼疲劳', '常忘喝水']);
 
   /// 统一的 Intent 入口（Screen 经 onIntent 回调转发至此）。
   void handleIntent(ProfileIntent intent) {
@@ -21,3 +17,7 @@ class ProfileViewModel extends ChangeNotifier {
     }
   }
 }
+
+/// 我的页状态容器（常驻 Tab：IndexedStack 持续挂载，状态保活）。
+final profileViewModelProvider =
+    NotifierProvider<ProfileViewModel, ProfileState>(ProfileViewModel.new);

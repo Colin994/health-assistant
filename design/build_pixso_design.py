@@ -72,6 +72,16 @@ function pillBtn(f,label,x,y,w,h,active,txtSize){
  var b=rect(f,'btn-'+label,w,h,x,y,active?C.primary:C.p10,1,100);
  txt(f,'bt-'+label,label,txtSize||14,active?'Semi Bold':'Medium',active?C.white:C.primary,x+16,y+(h-(txtSize||14)*1.4)/2,w-32,Math.round((txtSize||14)*1.4));
  return b;}
+// v3/v4: 3-slot bottom tab bar（今日/我的/设置），slots x=28/142/256 (w=106, gap=8)
+function tabbar3(f,active){
+ var tb=rect(f,'tabbar',342,62,24,756,C.white,1,31);
+ tb.strokes=[{type:'SOLID',color:hex(C.p5)}];try{tb.strokeWeight=1;}catch(e){}
+ var labels=['今日','我的','设置'], xs=[28,142,256];
+ for(var i=0;i<3;i++){
+  if(i===active){rect(f,'tabpill'+i,106,54,xs[i],760,C.primary,1,26);}
+  txt(f,'tabt'+i,labels[i],12,i===active?'Semi Bold':'Medium',i===active?C.white:C.sec,xs[i]+33,783,40,17);
+ }
+}
 """
 
 SCREENS = []
@@ -91,9 +101,9 @@ var nb=rect(f,'nb',204,58,cx-152,cy+52,C.white,1,16);
 txt(f,'nbt','坐了 55 分钟啦',13,'Semi Bold',C.text,cx-136,cy+66,160,18);
 txt(f,'nbs','起来活动一下吧',11,'Regular',C.sec,cx-136,cy+86,160,16);
 txt(f,'title','最懂你工作节奏的\n健康提醒',24,'Semi Bold',C.text,32,500,326,36);
-var rows=[['时机准','手环判断你真的久坐了，不是定时闹钟'],
+var rows=[['时机准','倒计时到了才提醒，不打断心流'],
           ['懂你','结合你的状况，说你听得进去的话'],
-          ['零负担','1 分钟拉伸，不用换衣服不用打卡']];
+          ['零负担','久坐、喝水、护眼，1 分钟微休息']];
 for(var i=0;i<3;i++){var y=600+i*42;
  circ(f,'pt',8,32,y+5,C.primary,1);
  txt(f,'pt'+i,rows[i][0],14,'Semi Bold',C.text,50,y,60,20);
@@ -106,39 +116,42 @@ pillBtn(f,'开始使用',32,772,326,56,true,16);
 # ---------------- Screen 2: 首启-健康标签 ----------------
 SCREENS.append(("02 首启-健康标签", r"""
 var f=scr('02 首启-健康标签', 446); statusbar(f);
-navbar(f,'你的身体状况');
+navbar(f,'你的身体状况与习惯');
 txt(f,'sub','让我们更懂你 · 可随时修改',13,'Regular',C.sec,32,104,260,18);
-var tags=[['颈椎不适',true],['肩颈僵硬',false],['腰部劳损',false],['眼疲劳',false]];
-for(var i=0;i<4;i++){var x=32+(i%2)*166, y=144+Math.floor(i/2)*96, sel=tags[i][1];
+var tags=[['颈椎不适',true],['肩颈僵硬',false],['腰部劳损',false],['眼疲劳',false],['常忘喝水',false],['咽干易上火',false]];
+var hints=['工作中提醒','工作中提醒','工作中提醒','工作中提醒','到点提醒接水','文案更温和'];
+for(var i=0;i<6;i++){var x=32+(i%2)*166, y=144+Math.floor(i/2)*96, sel=tags[i][1];
  rect(f,'tag'+i,150,84,x,y,sel?C.primary:C.fa,1,16);
  txt(f,'ttn'+i,tags[i][0],15,sel?'Semi Bold':'Medium',sel?C.white:C.text,x+20,y+18,110,22);
  if(sel){circ(f,'ck',20,x+20,y+46,C.white,1);txt(f,'cki','✓',12,'Bold',C.primary,x+27,y+50,10,14,F_EN);}
- else{txt(f,'ttd'+i,'工作中提醒',11,'Regular',C.ter,x+20,y+50,100,16);}}
-rect(f,'only',326,48,32,338,C.fa,1,100);
-circ(f,'oco',18,46,353,C.p5,1);
-txt(f,'oct','只是久坐，没特殊不适',14,'Medium',C.text,74,350,240,20);
-rect(f,'preview',326,110,32,404,C.p10,1,16);
-txt(f,'pvh','已选「颈椎不适」，提醒会像这样：',12,'Semi Bold',C.text,48,420,290,18);
-txt(f,'pvb','“低头一小时了，抬头看看远处吧——\n顺便做个收下巴，30 秒”',13,'Regular',C.text,48,444,290,22);
+ else{txt(f,'ttd'+i,hints[i],11,'Regular',C.ter,x+20,y+50,100,16);}}
+rect(f,'only',326,48,32,436,C.fa,1,100);
+circ(f,'oco',18,46,451,C.p5,1);
+txt(f,'oct','只是久坐，没特殊不适',14,'Medium',C.text,74,448,240,20);
+rect(f,'preview',326,110,32,500,C.p10,1,16);
+txt(f,'pvh','已选「颈椎不适」，提醒会像这样：',12,'Semi Bold',C.text,48,516,290,18);
+txt(f,'pvb','“低头一小时了，抬头看看远处吧——\n顺便做个收下巴，30 秒”',13,'Regular',C.text,48,540,290,22);
 pillBtn(f,'下一步',32,772,326,56,true,16);
 """))
 
 # ---------------- Screen 3: 首启-权限引导 ----------------
 SCREENS.append(("03 首启-权限引导", r"""
 var f=scr('03 首启-权限引导', 892); statusbar(f);
-navbar(f,'连接你的健康数据');
-txt(f,'sub','两步授权，之后就不需要再管了',13,'Regular',C.sec,32,104,280,18);
+navbar(f,'开启提醒');
+txt(f,'sub','开启通知，倒计时到了准时提醒你',13,'Regular',C.sec,32,104,280,18);
 rect(f,'perm1',326,120,32,144,C.fa,1,16);
-circ(f,'ic1',44,52,168,C.p10,1);txt(f,'ic1t','♥',18,'Regular',C.primary,68,182,20,24,F_EN);
-txt(f,'p1t','健康数据',15,'Semi Bold',C.text,108,162,120,22);
-txt(f,'p1d','读取活动与久坐记录，\n仅此而已。',12,'Regular',C.sec,108,188,124,18);
-pillBtn(f,'去授权',240,168,102,36,true,13);
-rect(f,'perm2',326,120,32,280,C.fa,1,16);
-circ(f,'ic2',44,52,304,C.p10,1);txt(f,'ic2t','◔',18,'Regular',C.primary,68,318,20,24,F_EN);
-txt(f,'p2t','通知',15,'Semi Bold',C.text,108,298,120,22);
-txt(f,'p2d','提醒的唯一通道，\n可随时在系统中关闭。',12,'Regular',C.sec,108,324,124,18);
-pillBtn(f,'去开启',240,304,102,36,true,13);
-txt(f,'priv','我们只读取活动与久坐记录，不采集心率、睡眠等\n敏感数据；数据仅用于为你生成提醒。',11,'Regular',C.ter,32,428,326,18);
+circ(f,'ic1',44,52,168,C.p10,1);txt(f,'ic1t','◔',18,'Regular',C.primary,68,182,20,24,F_EN);
+txt(f,'p1t','通知',15,'Semi Bold',C.text,108,162,120,22);
+txt(f,'p1d','提醒的唯一通道，\n可随时在系统中关闭。',12,'Regular',C.sec,108,188,124,18);
+pillBtn(f,'去开启',240,168,102,36,true,13);
+rect(f,'perm2',326,132,32,280,C.fa,1,16);
+circ(f,'ic2',44,52,308,C.p10,1);txt(f,'ic2t','◷',18,'Regular',C.primary,68,322,20,24,F_EN);
+txt(f,'p2t','连接智能手表',15,'Semi Bold',C.text,108,298,120,22);
+rect(f,'pro2',36,18,232,300,C.primary,1,100);
+txt(f,'pro2t','PRO',10,'Bold',C.white,240,303,26,14,F_EN);
+txt(f,'p2d','更准的久坐判定 · Pro\n付费功能，即将上线',12,'Regular',C.sec,108,324,126,18);
+pillBtn(f,'了解更多',240,350,102,36,false,13);
+txt(f,'priv','提醒由本地倒计时生成，不采集健康数据；\n连接手表（Pro）上线后才读取活动记录。',11,'Regular',C.ter,32,436,326,18);
 pillBtn(f,'进入应用',32,772,326,56,true,16);
 """))
 
@@ -146,25 +159,21 @@ pillBtn(f,'进入应用',32,772,326,56,true,16);
 SCREENS.append(("04 今日", r"""
 var f=scr('04 今日', 1338); statusbar(f);
 txt(f,'title','今日',24,'Semi Bold',C.text,32,70,120,32);
-circ(f,'wface',34,32,120,C.p10,1);txt(f,'wicon','◔',15,'Regular',C.primary,44,129,16,18,F_EN);
-txt(f,'src','Apple Watch · 数据更新 5 分钟前',12,'Regular',C.sec,74,128,280,18);
+var chips=[['久坐 · 55 分',32,96],['喝水 · 45 分',136,96],['护眼 · 20 分',240,92]];
+for(var i=0;i<3;i++){
+ rect(f,'chip'+i,chips[i][2],28,chips[i][1],124,C.p10,1,100);
+ txt(f,'chipt'+i,chips[i][0],11,'Medium',C.primary,chips[i][1]+8,131,chips[i][2]-16,16);}
 rect(f,'countcard',326,140,32,164,C.white,1,24);
 txt(f,'ccl','今天已提醒',13,'Regular',C.sec,60,192,100,18);
 txt(f,'cnum','3',40,'Semi Bold',C.text,60,212,60,52,F_EN);
 txt(f,'crl','和你一起完成了',13,'Regular',C.sec,176,192,96,18);
 txt(f,'crn','2',40,'Semi Bold',C.primary,176,212,60,52,F_EN);
 circ(f,'cbr',44,276,236,C.p10,1);txt(f,'cbt','💪',16,'Regular',C.primary,290,251,20,22,F_EN);
-txt(f,'nel','下次提醒预估',13,'Semi Bold',C.text,32,332,140,18);
-txt(f,'nev','如果你持续坐着，约 14:30 会提醒你',12,'Regular',C.sec,32,354,290,18);
+txt(f,'nel','下次提醒（倒计时）',13,'Semi Bold',C.text,32,332,140,18);
+txt(f,'nev','久坐 14:30 · 喝水 14:50 · 护眼 15:10',12,'Regular',C.sec,32,354,290,18);
 rect(f,'recent',326,60,32,390,C.p10,1,16);
 txt(f,'rft','✓ 颈部侧拉伸 · 11:20 · 完成',13,'Medium',C.text,52,411,260,18);
-rect(f,'tabbar',342,62,24,756,C.white,1,31);
-var tb=pixso.getNodeById(f.children[f.children.length-1].id);
-tb.strokes=[{type:'SOLID',color:hex(C.p5)}];try{tb.strokeWeight=1;}catch(e){}
-rect(f,'tab1',155,54,28,760,C.primary,1,26);
-txt(f,'tab1t','今日',12,'Semi Bold',C.white,86,783,40,17);
-rect(f,'tab2bg',155,54,207,760,null,0,26);
-txt(f,'tab2t','我的',12,'Medium',C.sec,264,783,40,17);
+tabbar3(f,0);
 """))
 
 # ---------------- Screen 5: 拉伸页 ----------------
@@ -226,45 +235,65 @@ txt(f,'secl','我的健康标签',13,'Semi Bold',C.sec,32,126,160,18);
 rect(f,'tagcard',326,72,32,152,C.white,1,16);
 pillBtn(f,'颈椎不适',52,170,92,32,true,12);
 pillBtn(f,'眼疲劳',152,170,72,32,false,12);
+pillBtn(f,'常忘喝水',232,170,80,32,false,12);
 txt(f,'tghint','修改标签会即时影响下次提醒',11,'Regular',C.ter,32,232,280,16);
-txt(f,'sec2','设置',13,'Semi Bold',C.sec,32,252,120,18);
-var rows=[['提醒设置','密度 · 静音时段 · 测试提醒'],['隐私与数据说明','我们读取什么、存在哪'],['关于','版本 0.1.0']];
-for(var i=0;i<3;i++){var y=278+i*72;
- rect(f,'row'+i,326,60,32,y,C.white,1,16);
- txt(f,'rt'+i,rows[i][0],14,'Semi Bold',C.text,52,y+12,150,20);
- txt(f,'rd'+i,rows[i][1],11,'Regular',C.ter,52,y+34,240,16);
- txt(f,'chev'+i,'›',18,'Regular',C.ter,332,y+16,20,24,F_EN);}
-rect(f,'tabbar',342,62,24,756,C.white,1,31);
-var tb=pixso.getNodeById(f.children[f.children.length-1].id);
-tb.strokes=[{type:'SOLID',color:hex(C.p5)}];try{tb.strokeWeight=1;}catch(e){}
-rect(f,'tab1bg',155,54,28,760,null,0,26);
-txt(f,'tab1t','今日',12,'Medium',C.sec,86,783,40,17);
-rect(f,'tab2',155,54,207,760,C.primary,1,26);
-txt(f,'tab2t','我的',12,'Semi Bold',C.white,264,783,40,17);
+txt(f,'sethint','设置与开发者选项已移至「设置」页',11,'Regular',C.ter,32,276,300,16);
+tabbar3(f,1);
 """))
 
 # ---------------- Screen 8: 提醒设置 ----------------
 SCREENS.append(("08 提醒设置", r"""
 var f=scr('08 提醒设置', 3122); statusbar(f);
 navbar(f,'提醒设置');
-rect(f,'denCard',326,110,32,116,C.white,1,16);
-txt(f,'dt','提醒密度',14,'Semi Bold',C.text,52,132,120,20);
+rect(f,'denCard',326,110,32,112,C.white,1,16);
+txt(f,'dt','久坐拉伸',14,'Semi Bold',C.text,52,128,120,20);
 var segs=[['更严格','45 分钟',false],['标准','55 分钟',true],['更宽松','75 分钟',false]];
 for(var i=0;i<3;i++){var x=52+i*98, sel=segs[i][2];
- rect(f,'seg'+i,90,48,x,158,sel?C.primary:C.fa,1,12);
- txt(f,'sgt'+i,segs[i][0],12,sel?'Semi Bold':'Medium',sel?C.white:C.text,x+10,166,70,17);
- txt(f,'sgd'+i,segs[i][1],10,'Regular',sel?C.white:C.ter,x+10,184,70,14);}
-rect(f,'quietCard',326,84,32,244,C.white,1,16);
-txt(f,'qt','静音时段',14,'Semi Bold',C.text,52,260,120,20);
-txt(f,'qv','22:00 – 07:00',13,'Regular',C.sec,52,284,140,18);
-rect(f,'sw1',51,31,291,262,C.primary,1,100);circ(f,'kn1',27,303,265,C.white,1);
-rect(f,'noonCard',326,84,32,340,C.white,1,16);
-txt(f,'nt','午休静音',14,'Semi Bold',C.text,52,356,120,20);
-txt(f,'nv','12:30 – 13:30 不提醒',12,'Regular',C.sec,52,380,170,17);
-rect(f,'sw2',51,31,291,356,C.primary,1,100);circ(f,'kn2',27,303,359,C.white,1);
-txt(f,'auton','自动降频：负面反馈过多时会自动放宽提醒。\n当前：标准（55 分钟 · 间隔 90 分钟）',11,'Regular',C.ter,32,444,326,18);
-rect(f,'testbtn',326,52,32,496,C.p10,1,100);
-txt(f,'tb','发一条试试 ›',14,'Semi Bold',C.primary,136,511,140,20);
+ rect(f,'seg'+i,90,48,x,154,sel?C.primary:C.fa,1,12);
+ txt(f,'sgt'+i,segs[i][0],12,sel?'Semi Bold':'Medium',sel?C.white:C.text,x+10,162,70,17);
+ txt(f,'sgd'+i,segs[i][1],10,'Regular',sel?C.white:C.ter,x+10,180,70,14);}
+rect(f,'waterCard',326,84,32,234,C.white,1,16);
+txt(f,'wt','喝水提醒',14,'Semi Bold',C.text,52,250,120,20);
+txt(f,'wd','每 45 分钟 · 一小杯就好',12,'Regular',C.sec,52,274,200,17);
+rect(f,'swW',51,31,291,252,C.primary,1,100);circ(f,'knW',27,303,255,C.white,1);
+rect(f,'eyeCard',326,84,32,330,C.white,1,16);
+txt(f,'et','护眼提醒',14,'Semi Bold',C.text,52,346,120,20);
+txt(f,'ed','20-20-20 · 每 20 分钟远眺 20 秒',12,'Regular',C.sec,52,370,230,17);
+rect(f,'swE',51,31,291,348,C.primary,1,100);circ(f,'knE',27,303,351,C.white,1);
+rect(f,'quietCard',326,84,32,426,C.white,1,16);
+txt(f,'qt','静音时段',14,'Semi Bold',C.text,52,442,120,20);
+txt(f,'qv','22:00 – 07:00',13,'Regular',C.sec,52,466,140,18);
+rect(f,'sw1',51,31,291,444,C.primary,1,100);circ(f,'kn1',27,303,447,C.white,1);
+rect(f,'noonCard',326,84,32,522,C.white,1,16);
+txt(f,'nt','午休静音',14,'Semi Bold',C.text,52,538,120,20);
+txt(f,'nv','12:30 – 13:30 不提醒',12,'Regular',C.sec,52,562,170,17);
+rect(f,'sw2',51,31,291,540,C.primary,1,100);circ(f,'kn2',27,303,543,C.white,1);
+txt(f,'auton','三类提醒共享静音时段；自动降频：负面反馈过多时自动放宽。\n当前：久坐 标准（55 分钟）· 喝水 45 分 · 护眼 20 分',11,'Regular',C.ter,32,622,326,18);
+rect(f,'testbtn',326,52,32,670,C.p10,1,100);
+txt(f,'tb','发一条试试 ›',14,'Semi Bold',C.primary,136,685,140,20);
+"""))
+
+# ---------------- Screen 9: 设置（v3 新增 Tab） ----------------
+SCREENS.append(("09 设置", r"""
+var f=scr('09 设置', 3568); statusbar(f);
+txt(f,'title','设置',24,'Semi Bold',C.text,32,70,120,32);
+txt(f,'sec1','通用',13,'Semi Bold',C.sec,32,126,120,18);
+var rows1=[['连接智能手表','久坐判定更准 · Pro 即将上线'],['提醒设置','久坐 · 喝水 · 护眼 · 静音时段'],['隐私与数据说明','我们读取什么、存在哪'],['关于','版本 0.1.0']];
+for(var i=0;i<4;i++){var y=152+i*72;
+ rect(f,'row'+i,326,60,32,y,C.white,1,16);
+ txt(f,'rt'+i,rows1[i][0],14,'Semi Bold',C.text,52,y+12,150,20);
+ txt(f,'rd'+i,rows1[i][1],11,'Regular',C.ter,52,y+34,240,16);
+ if(i===0){rect(f,'pro0',36,18,276,y+14,C.primary,1,100);txt(f,'pro0t','PRO',10,'Bold',C.white,284,y+17,26,14,F_EN);}
+ txt(f,'chev'+i,'›',18,'Regular',C.ter,332,y+16,20,24,F_EN);}
+txt(f,'sec2','开发者',13,'Semi Bold',C.sec,32,462,120,18);
+var rows2=[['W1 链路验证','传感器 + Health Connect 探针'],['重看首启引导','设计稿 01–03 · 首启流程'],['拉伸页','设计稿 05–06 · 深链调试']];
+for(var i=0;i<3;i++){var y=488+i*72;
+ rect(f,'drow'+i,326,60,32,y,C.white,1,16);
+ txt(f,'dt'+i,rows2[i][0],14,'Semi Bold',C.text,52,y+12,150,20);
+ txt(f,'dd'+i,rows2[i][1],11,'Regular',C.ter,52,y+34,240,16);
+ txt(f,'dchev'+i,'›',18,'Regular',C.ter,332,y+16,20,24,F_EN);}
+txt(f,'devhint','仅调试构建显示 · 正式版隐藏',11,'Regular',C.ter,32,708,300,16);
+tabbar3(f,2);
 """))
 
 def main():

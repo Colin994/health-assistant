@@ -20,10 +20,22 @@ abstract class HealthRepository {
     required DateTime to,
   });
 
-  /// 写入一条测试步数记录（W1 demo 专用造数入口，W2 移除）。
-  Future<bool> writeTestSteps({
+  /// 读取 [from, to] 时间窗内的步数总量（今日步数基线恢复用）。
+  Future<int> fetchStepsTotal({
+    required DateTime from,
+    required DateTime to,
+  });
+
+  /// 写入一段步数记录（L4 会话段落入 HC；demo 造数复用）。
+  Future<bool> writeSteps({
     required DateTime start,
     required DateTime end,
     required int count,
+  });
+
+  /// 删除时间窗内的步数记录（仅限本应用写入的；测试数据清理）。
+  Future<bool> deleteSteps({
+    required DateTime from,
+    required DateTime to,
   });
 }
