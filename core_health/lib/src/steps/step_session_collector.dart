@@ -25,6 +25,8 @@ class StepSessionCollector {
   StepSessionCollector();
 
   static const EventChannel _channel = EventChannel('steps/session');
+  static const MethodChannel _permissionChannel =
+      MethodChannel('steps/permission');
 
   /// 落盘键：`{date: 'yyyy-MM-dd', steps: 当日累计}`。
   static const String _prefsKey = 'l4_step_baseline';
@@ -170,6 +172,23 @@ class StepSessionCollector {
   String _dayKeyOf(DateTime now) =>
       '${now.year}-${now.month.toString().padLeft(2, '0')}-'
       '${now.day.toString().padLeft(2, '0')}';
+
+  /// 申请「身体活动」权限（新装用户应用内自愈；已授权直接返回 true）。
+  Future<bool> ensurePermission() async {
+    try {
+      return await _permissionChannel.invokeMethod<bool>('request') ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// 重启采集（权限授予后重新订阅 Detector 流）。
+  Future<void> restart() async {
+    await _tickSub?.cancel();
+    _tickSub = null;
+    _running = false;
+    await start();
+  }
 
   /// 停止采集（App 退出/测试用；常驻单例场景无需调用）。
   Future<void> stop() async {

@@ -33,10 +33,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // ---- 今日页 ----
-    // 基础渲染走查（两渠道都应可见）。
-    expect(find.text('久坐 · 55 分'), findsOneWidget);
-    expect(find.text('喝水 · 45 分'), findsOneWidget);
-    expect(find.text('护眼 · 20 分'), findsOneWidget);
+    // W2：chips 由引擎驱动（活倒计时/状态），断言三类均在。
+    expect(find.textContaining('久坐'), findsWidgets);
+    expect(find.textContaining('喝水'), findsWidgets);
+    expect(find.textContaining('护眼'), findsWidgets);
     // L4 探针口径仅 dev 渠道。
     expect(
       find.textContaining('L4'),
@@ -71,11 +71,9 @@ void main() {
     // ---- 我的页 ----
     await tester.tap(find.text('我的'));
     await tester.pumpAndSettle();
-    expect(find.text('颈椎不适'), findsOneWidget); // 健康标签两渠道一致
-    expect(
-      find.textContaining('开发者'),
-      isDevBuild ? findsWidgets : findsNothing,
-      reason: '我的页「开发者选项」提示仅 dev 渠道',
-    );
+    expect(find.text('健康标签'), findsOneWidget);
+    // v7：提醒设置入口移入「我的」，两渠道一致；指路页脚已删。
+    expect(find.text('提醒设置'), findsOneWidget);
+    expect(find.textContaining('已移至'), findsNothing);
   });
 }

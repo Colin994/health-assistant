@@ -13,6 +13,12 @@ dependencies:
     path: ../base_utils
   core_health:
     path: ../core_health
+  core_model:
+    path: ../core_model
+  core_profile:
+    path: ../core_profile
+  core_reminder:
+    path: ../core_reminder
   feature_design_system:
     path: ../feature_design_system
   flutter_riverpod: ^3.0.0

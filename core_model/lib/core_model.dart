@@ -7,4 +7,8 @@ library;
 export 'src/activity_segment.dart';
 export 'src/feedback_event.dart';
 export 'src/health_tag.dart';
+export 'src/reminder_config.dart';
+export 'src/reminder_kind.dart';
+export 'src/reminder_rule.dart';
+export 'src/rule_state.dart';
 export 'src/trigger_context.dart';

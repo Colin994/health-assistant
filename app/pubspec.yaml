@@ -13,6 +13,10 @@ dependencies:
     path: ../base_utils
   core_health:
     path: ../core_health
+  core_profile:
+    path: ../core_profile
+  core_reminder:
+    path: ../core_reminder
   core_model:
     path: ../core_model
   core_network:

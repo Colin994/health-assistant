@@ -7,3 +7,4 @@
 library;
 
 export 'src/injector.module.dart';
+export 'src/record_feedback_use_case.dart';

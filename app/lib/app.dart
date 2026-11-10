@@ -31,6 +31,12 @@ class _HealthAssistantAppState extends State<HealthAssistantApp> {
     }
     await OnboardingScreenRoute.push(context);
     await prefs.setBool(_onboardingDoneKey, true);
+    // 首启 first-tip（交互文档 §3.1）：完成引导即告知倒计时已就位。
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('倒计时已就位，接下来的事交给我')),
+      );
+    }
   }
 
   @override

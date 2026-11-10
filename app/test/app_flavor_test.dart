@@ -16,7 +16,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 断言：W1/L4/W2 等开发内容仅 dev 渠道渲染，master 渠道隐藏。
 void main() {
   testWidgets('渠道内容走查：开发者内容仅 dev 可见', (tester) async {
-    SharedPreferences.setMockInitialValues({'onboarding_done': true});
+    SharedPreferences.setMockInitialValues({
+      'onboarding_done': true,
+      // v7：我的页标签来自 HealthTagStore（引导落库）。
+      'health_tags_v1': ['颈椎不适'],
+    });
     // 与 main() 一致：先聚合 DI（懒注册），再渲染 App。
     await configureDependencies();
 
@@ -32,20 +36,13 @@ void main() {
     await tester.pumpAndSettle();
 
     // ---- 今日页 ----
-    expect(find.text('久坐 · 55 分'), findsOneWidget);
-    expect(find.text('喝水 · 45 分'), findsOneWidget);
-    expect(find.text('护眼 · 20 分'), findsOneWidget);
-    // 数据源行文案依赖采集器异步状态（宿主环境不确定），不在此断言；
-    // 其渠道差异已由真机 logcat 验证。
-    // W2 里程碑字样（下次提醒占位）仅 dev 渠道。
-    expect(
-      find.textContaining('（W2）'),
-      isDevBuild ? findsWidgets : findsNothing,
-    );
-    expect(
-      find.text('提醒倒计时即将上线'),
-      isDevBuild ? findsNothing : findsOneWidget,
-    );
+    // W2：chips 由引擎驱动（活倒计时/状态），断言三类均在且非静态间隔文案。
+    expect(find.textContaining('久坐'), findsWidgets);
+    expect(find.textContaining('喝水'), findsWidgets);
+    expect(find.textContaining('护眼'), findsWidgets);
+    expect(find.text('久坐 · 55 分'), findsNothing, reason: 'W2 起不再展示静态间隔');
+    // 下次提醒区（引擎投影；测试环境 DB 降级仍应有状态输出）。
+    expect(find.text('下次提醒'), findsOneWidget);
     expect(
       find.byTooltip('快速拉伸（开发入口）'),
       isDevBuild ? findsOneWidget : findsNothing,
@@ -73,11 +70,15 @@ void main() {
     // ---- 我的页 ----
     await tester.tap(find.text('我的'));
     await tester.pumpAndSettle();
-    expect(find.text('颈椎不适'), findsOneWidget);
+    expect(find.text('颈椎不适'), findsOneWidget, reason: '标签来自 HealthTagStore');
+    // v7：提醒设置入口移入「我的」（提醒节奏区块），两渠道一致。
+    expect(find.text('提醒设置'), findsOneWidget);
+    expect(find.text('提醒'), findsOneWidget);
+    expect(find.text('健康标签'), findsOneWidget);
     expect(
-      find.textContaining('开发者'),
-      isDevBuild ? findsWidgets : findsNothing,
-      reason: '我的页「开发者选项」提示仅 dev 渠道',
+      find.textContaining('已移至'),
+      findsNothing,
+      reason: 'v7 删除「请见设置页」指路页脚',
     );
   });
 }

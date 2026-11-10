@@ -6,20 +6,18 @@ import 'settings_state.dart';
 /// 设置页（设计稿 09）：通用设置 + 开发者入口。
 ///
 /// 纯 UI 实现；底部 Tab 由 app 壳提供。
-/// - [onReminderSettings]：提醒设置入口（跳 feature_profile 的提醒设置页，
-///   由 app 壳注入避免跨 feature 依赖）；
+/// - v7（2026-11-10）：提醒设置移入「我的」Tab，本页只留应用级事项
+///   （设备连接 Pro / 隐私 / 关于）；
 /// - [devEntries]：开发者入口区条目（label + onTap，由 app 壳注入，
 ///   正式版构建传空数组即可隐藏整个区块）。
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({
     super.key,
     required this.state,
-    required this.onReminderSettings,
     this.devEntries = const [],
   });
 
   final SettingsState state;
-  final VoidCallback onReminderSettings;
 
   /// 开发者入口区条目（label + onTap），仅 debug 用途由壳注入。
   final List<(String, VoidCallback)> devEntries;
@@ -45,11 +43,6 @@ class SettingsScreen extends StatelessWidget {
                   const SnackBar(content: Text('Pro 功能 · 即将上线，敬请期待')),
                 );
               },
-            ),
-            _SettingsRow(
-              title: '提醒设置',
-              subtitle: '久坐 · 喝水 · 护眼 · 静音时段',
-              onTap: onReminderSettings,
             ),
             _SettingsRow(
               title: '隐私与数据说明',

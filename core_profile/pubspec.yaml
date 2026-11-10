@@ -1,5 +1,5 @@
 name: core_profile
-description: 画像域数据层（健康标签、静音时段、频控参数；W2+ 落地）
+description: 画像域数据层（提醒配置/健康标签本地持久化；云端同步 Pro 后）
 publish_to: none
 version: 0.1.0
 environment:
@@ -11,7 +11,12 @@ dependencies:
     sdk: flutter
   core_model:
     path: ../core_model
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   base_lints:
     path: ../base_lints
+  build_runner: ^2.15.1
+  injectable_generator: ^3.1.3

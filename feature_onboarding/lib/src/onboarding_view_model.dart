@@ -1,6 +1,9 @@
 import 'dart:async';
 
+import 'package:core_profile/core_profile.dart';
+import 'package:core_reminder/core_reminder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get_it/get_it.dart';
 
 import 'onboarding_event.dart';
 import 'onboarding_intent.dart';
@@ -28,10 +31,10 @@ class OnboardingViewModel extends Notifier<OnboardingState> {
   }
 
   /// 统一的 Intent 入口（Screen 经 onIntent 回调转发至此）。
-  void handleIntent(OnboardingIntent intent) {
+  Future<void> handleIntent(OnboardingIntent intent) async {
     switch (intent) {
       case SkipPressed():
-        _complete();
+        await _complete();
       case BackPressed():
         if (state.step != OnboardingStep.value) {
           state = state.copyWith(
@@ -40,7 +43,7 @@ class OnboardingViewModel extends Notifier<OnboardingState> {
         }
       case NextPressed():
         if (state.isLastStep) {
-          _complete();
+          await _complete();
         } else {
           state = state.copyWith(
             step: OnboardingStep.values[state.step.index + 1],
@@ -61,14 +64,34 @@ class OnboardingViewModel extends Notifier<OnboardingState> {
           }
         }
         state = state.copyWith(selectedTags: tags);
-      // W3 接真实通知授权（系统通知设置），当前仅落 UI 态
+      // W2-c：真实通知权限请求（Android 13+ / iOS）。
       case RequestNotifications():
-        state = state.copyWith(notificationGranted: true);
+        final granted = await _requestNotificationPermission();
+        state = state.copyWith(notificationGranted: granted);
     }
   }
 
-  void _complete() {
+  Future<void> _complete() async {
+    // 标签落库（PRD FR-2）+ 自动开启对应提醒（v8：加法式）。
+    try {
+      final tags = {...state.selectedTags};
+      final store = GetIt.I<HealthTagStore>();
+      final repo = GetIt.I<ReminderConfigRepository>();
+      await store.save(tags);
+      await enableRemindersForTags(tags, repo);
+      await GetIt.I<ReminderEngine>().onSettingsChanged();
+    } catch (_) {
+      // 落库失败不阻断引导完成（空标签走默认文案）。
+    }
     _events.add(const OnboardingCompleted());
+  }
+
+  Future<bool> _requestNotificationPermission() async {
+    try {
+      return await GetIt.I<ReminderNotificationService>().requestPermission();
+    } catch (_) {
+      return false;
+    }
   }
 }
 

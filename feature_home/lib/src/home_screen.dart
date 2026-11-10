@@ -1,4 +1,5 @@
 import 'package:base_utils/base_utils.dart';
+import 'package:core_model/core_model.dart';
 import 'package:feature_design_system/feature_design_system.dart';
 import 'package:flutter/material.dart';
 
@@ -14,13 +15,17 @@ class HomeScreen extends StatelessWidget {
     required this.state,
     required this.onIntent,
     this.onQuickStretch,
+    this.onOpenReminderSettings,
   });
 
   final HomeState state;
   final ValueChanged<HomeIntent> onIntent;
 
-  /// 快捷开始拉伸（W1 临时开发入口，由 app 壳注入；W3 由通知深链替代）。
+  /// 快捷开始拉伸（开发入口，由 app 壳注入；W3 由通知深链替代）。
   final VoidCallback? onQuickStretch;
+
+  /// 点击提醒 chips 跳「提醒设置」（交互文档 §4.1）。
+  final VoidCallback? onOpenReminderSettings;
 
   @override
   Widget build(BuildContext context) {
@@ -46,11 +51,20 @@ class HomeScreen extends StatelessWidget {
               onRefresh: () => onIntent(const RefreshPressed()),
             ),
             const SizedBox(height: AppSpacing.sm),
-            // v5：三类倒计时提醒入口态（W2 接倒计时引擎后变实时）。
-            const _CountdownChipsRow(),
+            _CountdownChipsRow(
+              chips: state.chips,
+              onTap: onOpenReminderSettings,
+            ),
             const SizedBox(height: AppSpacing.sm),
             _StepsTodayCard(steps: state.todaySteps),
             const SizedBox(height: AppSpacing.lg),
+            if (state.showDeEscalationBanner) ...[
+              _DeEscalationBanner(
+                onAcknowledge: () =>
+                    onIntent(const DeEscalationAcknowledged()),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             Row(
               children: [
                 Expanded(
@@ -70,20 +84,31 @@ class HomeScreen extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.lg),
-            const _SectionTitle('下次提醒（倒计时）'),
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
+            if (state.nextReminders.isNotEmpty) ...[
+              const _SectionTitle('下次提醒'),
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm + 2,
+                ),
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(AppRadius.lg)),
+                ),
+                child: Column(
+                  children: [
+                    for (var i = 0; i < state.nextReminders.length; i++) ...[
+                      if (i > 0)
+                        const Divider(height: 1, color: AppColors.background),
+                      _NextReminderRow(item: state.nextReminders[i]),
+                    ],
+                  ],
+                ),
               ),
-              child: Text(
-                state.nextEstimateText,
-                style: AppTypography.body.copyWith(color: AppColors.textPrimary),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
+            ],
             if (state.records.isNotEmpty) ...[
               const _SectionTitle('今日记录'),
               const SizedBox(height: AppSpacing.sm),
@@ -154,46 +179,94 @@ class _StepsTodayCard extends StatelessWidget {
   }
 }
 
-/// 三类倒计时提醒 chips：久坐拉伸 / 喝水 / 护眼（设计稿 04 v5）。
+/// 三类倒计时提醒 chips（引擎投影：活倒计时/静音/稍后/免打扰态）。
 ///
-/// 当前为入口间隔展示（W2 倒计时引擎接入后刷新为剩余时间）；
-/// 手表连接隐藏为设置页 Pro 功能后，首页不再展示手表数据源。
+/// 点击跳「提醒设置」（交互文档 §4.1）；关闭/禁用的类别不渲染。
 class _CountdownChipsRow extends StatelessWidget {
-  const _CountdownChipsRow();
+  const _CountdownChipsRow({required this.chips, this.onTap});
 
-  static const _chips = [('久坐 · 55 分', Icons.chair), ('喝水 · 45 分', Icons.water_drop), ('护眼 · 20 分', Icons.visibility)];
+  final List<ReminderChipView> chips;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    if (chips.isEmpty) return const SizedBox.shrink();
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
       children: [
-        for (final (label, icon) in _chips)
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs + 2,
-            ),
-            decoration: const BoxDecoration(
-              color: AppColors.primarySurface,
-              borderRadius: BorderRadius.all(Radius.circular(AppRadius.pill)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, size: 14, color: AppColors.primary),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  label,
-                  style: AppTypography.caption.copyWith(
-                    color: AppColors.primary,
-                  ),
+        for (final chip in chips)
+          InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+            child: Opacity(
+              opacity: chip.dimmed ? 0.55 : 1,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs + 2,
                 ),
-              ],
+                decoration: const BoxDecoration(
+                  color: AppColors.primarySurface,
+                  borderRadius:
+                      BorderRadius.all(Radius.circular(AppRadius.pill)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(_iconOf(chip.kind), size: 14, color: AppColors.primary),
+                    const SizedBox(width: AppSpacing.xs),
+                    Text(
+                      chip.sub == null
+                          ? chip.label
+                          : '${chip.label} · ${chip.sub}',
+                      style: AppTypography.caption.copyWith(
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
       ],
+    );
+  }
+
+  static IconData _iconOf(ReminderKind kind) => switch (kind) {
+        ReminderKind.sedentary => Icons.chair,
+        ReminderKind.water => Icons.water_drop,
+        ReminderKind.eye => Icons.visibility,
+      };
+}
+
+/// 自动降频告知（FR-6：负面 >50% 自动放宽，App 内告知一次）。
+class _DeEscalationBanner extends StatelessWidget {
+  const _DeEscalationBanner({required this.onAcknowledge});
+
+  final VoidCallback onAcknowledge;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: const BorderRadius.all(Radius.circular(AppRadius.lg)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.tune, size: 16, color: AppColors.textSecondary),
+          const SizedBox(width: AppSpacing.sm),
+          const Expanded(
+            child: Text(
+              '最近「别提醒」有点多，已自动放宽提醒节奏，少打扰你',
+              style: AppTypography.caption,
+            ),
+          ),
+          TextButton(onPressed: onAcknowledge, child: const Text('知道了')),
+        ],
+      ),
     );
   }
 }
@@ -277,6 +350,41 @@ class _StatCard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 下次提醒单行（逐类一行，右侧时刻/状态）：降低信息密度，替代早期
+/// 「久坐 14:30 · 喝水 14:50 · 护眼 15:10」单行拼串（2026-11-09 反馈）。
+class _NextReminderRow extends StatelessWidget {
+  const _NextReminderRow({required this.item});
+
+  final NextReminderView item;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
+      child: Row(
+        children: [
+          Icon(_iconOf(item.kind), size: 16, color: AppColors.primary),
+          const SizedBox(width: AppSpacing.sm),
+          Text(item.label, style: AppTypography.bodyMedium),
+          const Spacer(),
+          Text(
+            item.timeText,
+            style: AppTypography.caption.copyWith(
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static IconData _iconOf(ReminderKind kind) => switch (kind) {
+        ReminderKind.sedentary => Icons.chair,
+        ReminderKind.water => Icons.water_drop,
+        ReminderKind.eye => Icons.visibility,
+      };
 }
 
 class _SectionTitle extends StatelessWidget {

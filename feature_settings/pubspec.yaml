@@ -12,6 +12,7 @@ dependencies:
   feature_design_system:
     path: ../feature_design_system
   flutter_riverpod: ^3.0.0
+  package_info_plus: ^10.0.0
 
 dev_dependencies:
   base_lints:

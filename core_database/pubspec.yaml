@@ -1,5 +1,5 @@
 name: core_database
-description: 数据库支撑模块（drift 库创建升级、表结构；W2 落地表）
+description: 数据库支撑模块（W2 持久化以 Prefs JSON 落在 core_reminder；本模块保留给 Pro 期关系型需求）
 publish_to: none
 version: 0.1.0
 environment:

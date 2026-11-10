@@ -13,10 +13,12 @@ import android.util.Log
 import io.flutter.embedding.android.FlutterFragmentActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
 
     private lateinit var sensorManager: SensorManager
+    private var pendingPermissionReply: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -27,6 +29,37 @@ class MainActivity : FlutterFragmentActivity() {
         // StepSessionStreamHandler 注释与 internal/任务看板 2026-11-04 条目。）
         EventChannel(flutterEngine.dartExecutor.binaryMessenger, "steps/session")
             .setStreamHandler(StepSessionStreamHandler())
+        // 身体活动权限申请通道（W2：新装用户应用内自愈，免手动去系统设置）。
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "steps/permission")
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "request" -> {
+                        if (checkSelfPermission(PERM) == PackageManager.PERMISSION_GRANTED) {
+                            result.success(true)
+                            return@setMethodCallHandler
+                        }
+                        if (pendingPermissionReply != null) {
+                            result.error("BUSY", "上一个权限请求尚未返回", null)
+                            return@setMethodCallHandler
+                        }
+                        pendingPermissionReply = result
+                        requestPermissions(arrayOf(PERM), REQUEST_PERMISSION_CODE)
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != REQUEST_PERMISSION_CODE) return
+        val granted = grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+        pendingPermissionReply?.success(granted)
+        pendingPermissionReply = null
     }
 
     /// `steps/session` 流处理器：L4 步数采集的正式通道。
@@ -92,5 +125,6 @@ class MainActivity : FlutterFragmentActivity() {
     private companion object {
         const val TAG = "StepSession"
         const val PERM = "android.permission.ACTIVITY_RECOGNITION"
+        const val REQUEST_PERMISSION_CODE = 10421
     }
 }

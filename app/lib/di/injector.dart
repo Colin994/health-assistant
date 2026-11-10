@@ -1,4 +1,6 @@
 import 'package:core_health/core_health.dart';
+import 'package:core_profile/core_profile.dart';
+import 'package:core_reminder/core_reminder.dart';
 import 'package:domain_all/domain_all.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
@@ -19,6 +21,8 @@ final GetIt getIt = GetIt.instance;
 @InjectableInit(
   externalPackageModulesBefore: [
     ExternalModule(CoreHealthPackageModule),
+    ExternalModule(CoreProfilePackageModule),
+    ExternalModule(CoreReminderPackageModule),
     ExternalModule(DomainAllPackageModule),
   ],
 )

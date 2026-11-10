@@ -15,6 +15,8 @@ dependencies:
     path: ../core_model
   core_network:
     path: ../core_network
+  core_reminder:
+    path: ../core_reminder
   base_utils:
     path: ../base_utils
   get_it: ^9.2.1
