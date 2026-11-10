@@ -4,14 +4,26 @@
 
 一款面向「久坐干预」的健康管理 Flutter 应用：以本地倒计时提醒（久坐拉伸 / 喝水 / 护眼）为核心，手机传感器实时计步辅助，形成「提醒 → 拉伸 → 反馈 → 自适应」的健康闭环；智能手表连接为 Pro 期规划（经 Health Connect / HealthKit 读取活动数据）。
 
-> 状态：开发中（8 屏 UI 与手机传感器计步已落地，倒计时提醒引擎开发中）
+> 状态：**W2 已完成**（v1.0.0）——三类倒计时提醒引擎端到端落地 + 真机 E2E 验证通过
 
 ## ✨ 已实现
 
-- **8 屏完整 UI**：首启引导 / 今日 / 拉伸 / 我的 / 设置，三 Tab 架构，逐屏走查通过
-- **自建设计系统**：设计 token（色/字/形/距）落地为 ThemeData，8 屏设计稿经版式审计
-- **手机传感器计步**：Step Detector 逐 tick 采集（EventChannel + SensorManager），当日基线本地持久化续计，真机验证与 MIUI 计步一致
-- **工程化**：Melos 16 包 monorepo，统一 lint 规则，一键 analyze / gen / test
+- **倒计时提醒引擎**：三类提醒（久坐拉伸/喝水/护眼），静音=暂停、档位/开关变更次轮生效、活动打断重置（走动不误报）、四态反馈（做完了/稍后/今天别提醒/别再提醒这类）、自动降频（近 7 天负面反馈 >50% 自动放宽）、被杀期闹钟兜底 + 开屏补记账
+- **通知链路**：flutter_local_notifications + schedule-next 模式（每类只排下一次闹钟），精确闹钟拒批自动降级
+- **健康标签**：引导时选择 → 自动开启对应提醒 → 我的页可编辑（保存后下次提醒生效）
+- **手机传感器计步**：Step Detector 逐 tick 采集，当日基线本地持久化，权限应用内自愈
+- **8 屏完整 UI + v8 信息架构**：提醒设置在「我的」、两级分组（提醒内容/免打扰）、下次提醒逐行展示、降频告知横幅
+- **工程化**：Melos 17 包 monorepo，引擎单测 15 用例（假时钟全场景），渠道走查测试双渠道
+
+## 🖼 截图
+
+| 今日（活倒计时） | 我的（标签+提醒） | 提醒设置（两级分组） |
+|---|---|---|
+| ![今日首页](design/ui_walk/02-home.png) | ![我的](design/ui_walk/04-profile.png) | ![提醒设置](design/ui_walk/06-reminder.png) |
+
+| 首启引导 | 标签编辑 | 设置 |
+|---|---|---|
+| ![引导页](design/ui_walk/01-onboarding.png) | ![标签编辑](design/ui_walk/05-tag-editor.png) | ![设置](design/ui_walk/07-settings.png) |
 
 ## 📐 架构
 
@@ -21,43 +33,35 @@
 |---|---|---|
 | 表现层 | Screen / ViewModel | `feature_*`（六件套：ScreenRoute/Screen/VM/State/Intent/Event） |
 | 领域层 | UseCase | `domain_all` |
-| 数据层 | Repository / DataSource | `core_health` 等 |
+| 数据层 | Repository / DataSource | `core_reminder` / `core_profile` / `core_health` 等 |
 
-- **DI/状态**：双容器边界——get_it + injectable 管 domain/core（UseCase/Repository，microPackage 模式，app 壳聚合注册）；flutter_riverpod 3 管表现层（Notifier 六件套：ScreenRoute/Screen/VM/State/Intent/Event），provider 内可取 get_it，反向禁止
-- **错误处理**：Result 模式（Success/Failure）；Repository 接口不暴露插件类型，保证数据源可替换
+- **DI/状态**：双容器边界——get_it + injectable 管 domain/core；flutter_riverpod 3 管表现层
+- **错误处理**：Result 模式；Repository 接口不暴露插件类型
 - **模块四分法**：`base_*`（基础设施）/ `feature_*`（功能）/ `domain_*`（用例）/ `core_*`（数据与模型）
-- **规范**：架构总纲 + 命名规范（含反例速查表）双文档约束所有代码
-
-## 🖼 截图
-
-| 引导 | 今日（首页） | 拉伸 |
-|---|---|---|
-| ![引导页](design/ui_walk/01-onboarding.png) | ![今日首页](design/ui_walk/02-home.png) | ![拉伸](design/ui_walk/03-stretch.png) |
-
-完整 8 屏设计稿与实现走查记录见 `design/ui_walk/`（过程留档在 `archive/`）。
 
 ## 🛠 技术栈
 
-Flutter / Dart ^3.12 · Melos 8 workspace · flutter_riverpod 3（表现层）· get_it + injectable 3（领域/数据层）· shared_preferences · health 13.x（Pro 期手表连接启用）· drift（规划中）· flutter_lints 6
+Flutter / Dart ^3.12 · Melos 8 workspace · flutter_riverpod 3 · get_it + injectable 3 · flutter_local_notifications 19 · shared_preferences · health 13.x（Pro 期手表连接启用）· flutter_lints 6
 
 ## 🚀 运行
 
 ```bash
-melos bootstrap      # 初始化 16 包 workspace
+melos bootstrap      # 初始化 17 包 workspace
 melos run analyze    # 全模块静态分析
 melos run gen        # build_runner 代码生成（DI 模块）
 melos run test       # 全模块测试
-cd app && flutter run
+cd app && flutter run --flavor dev    # 开发版（与正式版可共存）
+cd app && flutter build apk --flavor master --release  # 正式版
 ```
 
-> 计步需系统「身体活动」权限（应用内引导授权）。Health Connect / HealthKit 为 Pro 期手表连接的数据通道，当前版本不依赖。
+> 计步需系统「身体活动」权限（应用内引导授权 + 自动自愈）。Health Connect / HealthKit 为 Pro 期手表连接的数据通道，当前版本不依赖。
 
 ## 🗺 Roadmap
 
-- 久坐规则引擎与提醒链路（core_reminder）
-- drift 本地持久化（core_database）
-- 用户档案与反馈事件（core_profile / core_model）
-- snapshot / golden 测试体系（snapshot_test）
+- ✅ W2：倒计时提醒引擎端到端（已完成）
+- W3：通知深链直达拉伸页 + 通知内快捷反馈按钮
+- W4：云端 LLM 个性化文案
+- Pro：智能手表连接（付费墙 + HealthKit/HC 授权回归）
 
 ## 🤖 开发方式
 
