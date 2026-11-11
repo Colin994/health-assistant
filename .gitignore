@@ -53,3 +53,7 @@ design/pixso_export/
 design/pixso_full_tree.json
 design/pixso_last_result.json
 design/pixso_image.b64
+
+# design/ 本地开发工具（MCP 调用器含 localhost URL，Mimosa 标记 SSRF；2026-11-11 审计）
+design/*.py
+design/*.js
