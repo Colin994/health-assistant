@@ -73,7 +73,7 @@ class _GardenStyleDemoScreenState extends State<GardenStyleDemoScreen> {
                 _DemoStyle.clay =>
                   'A Claymorphism:圆角体积 + 顶光/环境影双阶明暗 + 同色系柔渐变',
                 _DemoStyle.isometric =>
-                  'B 2.5D 等距:菱形地块网格 + 厚度立面 + 暖光长影 + 深度排序',
+                  'B 2.5D 等距(锚点 edit_iso B):土台草顶 + 白框花畦 + 丛叶树 + 低多边形丛灌',
                 _DemoStyle.flat => '基线:现有扁平矢量风(garden_scene.dart)',
               },
               style: theme.textTheme.bodySmall?.copyWith(
@@ -413,7 +413,7 @@ class _ClayGardenPainter extends CustomPainter {
   bool shouldRepaint(_ClayGardenPainter oldDelegate) => false;
 }
 
-// ============ 风格 B:2.5D 等距花园 ============
+// ============ 风格 B:2.5D 等距花园(锚点:edit_iso B 候选) ============
 
 class _IsoGardenScene extends StatelessWidget {
   const _IsoGardenScene();
@@ -428,174 +428,154 @@ class _IsoGardenScene extends StatelessWidget {
   }
 }
 
-/// 等距 2.5D 场景:菱形地块网格 + 带厚度立面 + 深度排序 + 暖光长影。
+/// 等距 2.5D 场景(对齐 edit_iso B 候选):土台草顶 + 白框花畦 +
+/// 丛叶树 + 低多边形丛灌丘陵。
 class _IsoGardenPainter extends CustomPainter {
-  // 暖阳草地色系。
-  static const _skyTop = Color(0xFFFFF3C9);
-  static const _skyBottom = Color(0xFFFFE9B8);
-  static const _hillFar = Color(0xFFBCE3C8);
-  static const _hillNear = Color(0xFF9AD4B0);
-  static const _grassLight = Color(0xFFA9E0B9);
-  static const _grassShade = Color(0xFF8CC9A0);
-  static const _grassSideL = Color(0xFF6FB586);
-  static const _grassSideR = Color(0xFF5B9E72);
-  static const _soilTop = Color(0xFF9C7258);
-  static const _soilSideL = Color(0xFF7A5C48);
-  static const _soilSideR = Color(0xFF63483A);
-  static const _wood = Color(0xFFE8DCC0);
-  static const _woodShade = Color(0xFFC9B992);
-  static const _trunk = Color(0xFFA9714E);
-  static const _leafLight = Color(0xFF7FD6A4);
-  static const _leafMain = Color(0xFF4FBF83);
-  static const _leafDeep = Color(0xFF3AA06A);
-  static const _sunCore = Color(0xFFFFF6CC);
-  static const _sunEdge = Color(0xFFFFD98A);
+  // 黄绿黏土色系(取自锚点图)。
+  static const _backdropTop = Color(0xFFEFEBC8);
+  static const _backdropBottom = Color(0xFFD9DA9C);
+  static const _hillFar = Color(0xFFB9C468);
+  static const _hillNear = Color(0xFFA5B456);
+  static const _bushTop = Color(0xFF6E9C46);
+  static const _bushFace = Color(0xFF8FB55C);
+  static const _bushHi = Color(0xFFA9CB72);
+  static const _grassTop = Color(0xFFB9CC68);
+  static const _grassHi = Color(0xFFC8D97C);
+  static const _earthSideL = Color(0xFF9A744E);
+  static const _earthSideR = Color(0xFF7E5C3E);
+  static const _earthEdge = Color(0xFF63472F);
+  static const _frameTop = Color(0xFFF7F3E4);
+  static const _frameSideL = Color(0xFFE5DEC6);
+  static const _frameSideR = Color(0xFFD0C8AD);
+  static const _soilTop = Color(0xFF6E4F35);
+  static const _trunk = Color(0xFFA05A3C);
+  static const _leafLight = Color(0xFFB4D36E);
+  static const _leafMain = Color(0xFF8CB750);
+  static const _leafDeep = Color(0xFF639246);
+  static const _fenceWhite = Color(0xFFF9F6EC);
+  static const _fenceShade = Color(0xFFD6D0BC);
 
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
 
-    // 暖阳天空。
+    // 暖调背景(上奶油下橄榄)。
+    final backdrop = Rect.fromLTWH(0, 0, w, h);
     canvas.drawRect(
-      Rect.fromLTWH(0, 0, w, h),
+      backdrop,
       Paint()
         ..shader = LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [_skyTop, _skyBottom],
-        ).createShader(Rect.fromLTWH(0, 0, w, h)),
-    );
-    // 太阳与光晕。
-    final sun = Offset(0.78 * w, 0.12 * h);
-    canvas.drawCircle(
-      sun,
-      0.14 * w,
-      Paint()..color = const Color(0x55FFD98A),
-    );
-    canvas.drawCircle(
-      sun,
-      0.07 * w,
-      Paint()
-        ..shader = RadialGradient(
-          colors: [_sunCore, _sunEdge],
-        ).createShader(Rect.fromCircle(center: sun, radius: 0.07 * w)),
+          colors: [_backdropTop, _backdropBottom],
+        ).createShader(backdrop),
     );
 
-    // 远山两层(景深,藏在平台后缘)。
-    canvas.drawCircle(
-      Offset(0.16 * w, 0.40 * h),
-      0.26 * w,
-      Paint()..color = _hillFar,
-    );
-    canvas.drawCircle(
-      Offset(0.86 * w, 0.42 * h),
-      0.30 * w,
-      Paint()..color = _hillFar,
-    );
-    canvas.drawCircle(
-      Offset(0.55 * w, 0.44 * h),
-      0.28 * w,
-      Paint()..color = _hillNear,
-    );
+    // 远景丘陵(两带,连绵地形) + 稀疏丛灌(独立圆顶)。
+    _hillBand(canvas, w, h, 0.34 * h, 0.08 * h, _hillFar);
+    _hillBand(canvas, w, h, 0.42 * h, 0.09 * h, _hillNear);
+    _bushRow(canvas, w, 0.455 * h, 0.075 * w, 3, 1);
 
-    // 平台底座(带厚度的大菱形草地)。
-    const origin = Offset(0.5, 0.26);
-    final tileW = 0.34 * w;
+    // 等距坐标系:平台 col/row ∈ [-1.6, 1.6]。
+    const origin = Offset(0.5, 0.60);
+    final tileW = 0.30 * w;
     final tileH = tileW / 2;
     Offset iso(double col, double row) => Offset(
           origin.dx * w + (col - row) * tileW / 2,
           origin.dy * h + (col + row) * tileH / 2,
         );
 
-    // 底座立面(先画左右两块深色侧面)。
-    final baseL = iso(-1.4, 3.6);
-    final baseB = iso(3.6, 3.6);
-    final baseR = iso(3.6, -1.4);
-    final baseDepth = 0.07 * h;
-    final basePath = Path()
-      ..moveTo(baseL.dx, baseL.dy)
-      ..lineTo(baseB.dx, baseB.dy)
-      ..lineTo(baseB.dx, baseB.dy + baseDepth)
-      ..lineTo(baseL.dx, baseL.dy + baseDepth)
-      ..close();
-    canvas.drawPath(basePath, Paint()..color = _grassSideR);
-    final basePathR = Path()
-      ..moveTo(baseB.dx, baseB.dy)
-      ..lineTo(baseR.dx, baseR.dy)
-      ..lineTo(baseR.dx, baseR.dy + baseDepth)
-      ..lineTo(baseB.dx, baseB.dy + baseDepth)
-      ..close();
-    canvas.drawPath(basePathR, Paint()..color = _grassSideR);
+    // 丛叶树(平台左右后方,先画=在最远层)。
+    _blobTree(canvas, w, h, Offset(0.07 * w, 0.58 * h));
+    _blobTree(canvas, w, h, Offset(0.93 * w, 0.62 * h));
 
-    // 草地顶面(大菱形,微渐变)。
-    final groundTop = Path()
-      ..moveTo(baseL.dx, baseL.dy)
-      ..lineTo(iso(3.6, -1.4).dx, iso(-1.4, -1.4).dy)
-      ..lineTo(baseR.dx, baseR.dy)
-      ..lineTo(baseB.dx, baseB.dy)
-      ..close();
-    canvas.drawPath(
-      groundTop,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [_grassLight, _grassShade],
-        ).createShader(Rect.fromLTWH(0, 0.3 * h, w, 0.6 * h)),
-    );
+    // 平台:土坯厚座(草顶 + 左右土侧 + 底棱)。
+    _platform(canvas, w, h, iso);
 
-    // 背边栅栏(两段,先画在地块后面)。
-    _isoFence(canvas, w, h, iso, fromCol: -0.9, toCol: 3.0, row: -1.1);
-    _isoFence(canvas, w, h, iso, col: -1.1, fromRow: -0.9, toRow: 3.0);
+    // 背缘白栅栏(两段,沿平台后两边)。
+    _isoFence(canvas, w, h, iso, fromCol: -1.15, toCol: 1.15, row: -1.15);
+    _isoFence(canvas, w, h, iso, col: -1.15, fromRow: -1.15, toRow: 1.15);
 
-    // 地块网格(按 col+row 深度排序绘制,中央 2×2 为土壤花畦)。
-    const plots = {(1, 1), (2, 1), (1, 2), (2, 2)};
-    for (var sum = -3; sum <= 7; sum++) {
-      for (var col = -2; col <= sum; col++) {
+    // 四块白框花畦(2×2,按 col+row 深度排序)。
+    const beds = [(0, 0), (1, 0), (0, 1), (1, 1)];
+    for (var sum = 0; sum <= 2; sum++) {
+      for (var col = 0; col <= sum; col++) {
         final row = sum - col;
-        if (row < -2 || col < -2 || row > 3 || col > 3) {
+        if (!beds.contains((col, row))) {
           continue;
         }
-        _isoTile(
-          canvas,
-          w,
-          iso(col - 0.04, row - 0.04),
-          iso(col + 1.04, row - 0.04),
-          iso(col + 1.04, row + 1.04),
-          iso(col - 0.04, row + 1.04),
-          soil: plots.contains((col, row)),
-          checker: (col + row).isOdd,
-        );
+        _whiteBed(canvas, w, iso, col, row);
       }
     }
 
-    // 花畦里的小苗(深度排序后画)。
-    for (final plot in plots) {
-      _isoSprout(canvas, w, iso(plot.$1 + 0.5, plot.$2 + 0.5));
-    }
-
-    // 等距树(左后/右后各一,先画靠后的)。
-    _isoTree(canvas, w, h, iso(-0.55, -0.35));
-    _isoTree(canvas, w, h, iso(2.85, 0.0));
-    // 前景灌木(草块前景角,避开中央花畦)。
-    _isoBush(canvas, w, iso(-0.55, 3.1));
-    _isoBush(canvas, w, iso(3.1, -0.55));
+    // 前景低多边形丛灌(贴屏底,遮住平台前角)。
+    _bushLow(canvas, w, Offset(0.10 * w, 0.93 * h), 0.15 * w);
+    _bushLow(canvas, w, Offset(0.44 * w, 0.99 * h), 0.12 * w);
+    _bushLow(canvas, w, Offset(0.88 * w, 0.90 * h), 0.14 * w);
   }
 
-  /// 菱形地块:顶面 + 左立面 + 右立面(厚度),土壤块换土壤色;
-  /// 相邻同色块间留 0.08 缝隙,土壤块棋盘微调避免融合。
-  void _isoTile(
+  /// 丘陵剪影带:圆丘串 + 矩形底,盖到平台后缘之下。
+  void _hillBand(
     Canvas canvas,
     double w,
-    Offset top,
-    Offset right,
-    Offset bottom,
-    Offset left, {
-    required bool soil,
-    bool checker = false,
-  }) {
-    final depth = 0.022 * w;
+    double h,
+    double y,
+    double amp,
+    Color color,
+  ) {
+    final paint = Paint()..color = color;
+    for (final fx in const [0.10, 0.38, 0.66, 0.92]) {
+      canvas.drawCircle(Offset(fx * w, y), amp, paint);
+    }
+    canvas.drawRect(
+      Rect.fromLTWH(0, y, w, 0.16 * h),
+      paint,
+    );
+  }
+
+  /// 低多边形丛灌(背景行):主面圆 + 顶深色冠 + 左上高光。
+  void _bushRow(Canvas canvas, double w, double y, double r, int n, int seed) {
+    for (var i = 0; i < n; i++) {
+      final jitter = ((i * 37 + seed * 13) % 17) / 17 * 0.06 * w;
+      final x = (i + 0.5) / n * w * 1.08 - 0.04 * w + jitter - 0.03 * w;
+      final rr = r * (0.8 + ((i + seed) % 3) * 0.15);
+      _bushBlob(canvas, Offset(x, y), rr);
+    }
+  }
+
+  /// 丛灌团:底面 + 顶冠 + 高光。
+  void _bushBlob(Canvas canvas, Offset c, double r) {
+    canvas.drawCircle(
+      c + Offset(r * 0.1, r * 0.12),
+      r,
+      Paint()..color = _bushFace,
+    );
+    canvas.drawCircle(
+      c - Offset(r * 0.25, r * 0.28),
+      r * 0.72,
+      Paint()..color = _bushTop,
+    );
+    canvas.drawCircle(
+      c - Offset(r * 0.38, r * 0.42),
+      r * 0.26,
+      Paint()..color = _bushHi,
+    );
+  }
+
+  /// 土台:草顶大菱形 + 左右土侧 + 深色底棱 + 草面光点。
+  void _platform(
+    Canvas canvas,
+    double w,
+    double h,
+    Offset Function(double, double) iso,
+  ) {
+    final top = iso(-1.6, -1.6);
+    final right = iso(1.6, -1.6);
+    final bottom = iso(1.6, 1.6);
+    final left = iso(-1.6, 1.6);
+    final depth = 0.05 * h;
+
     final faceL = Path()
       ..moveTo(left.dx, left.dy)
       ..lineTo(bottom.dx, bottom.dy)
@@ -608,65 +588,176 @@ class _IsoGardenPainter extends CustomPainter {
       ..lineTo(right.dx, right.dy + depth)
       ..lineTo(bottom.dx, bottom.dy + depth)
       ..close();
-    canvas.drawPath(faceL, Paint()..color = soil ? _soilSideL : _grassSideL);
-    canvas.drawPath(faceR, Paint()..color = soil ? _soilSideR : _grassSideR);
+    canvas.drawPath(faceL, Paint()..color = _earthSideL);
+    canvas.drawPath(faceR, Paint()..color = _earthSideR);
+    // 深色底棱(沿两侧面下缘)。
+    final edgeL = Path()
+      ..moveTo(left.dx, left.dy + depth)
+      ..lineTo(bottom.dx, bottom.dy + depth)
+      ..lineTo(bottom.dx, bottom.dy + depth + 0.008 * h)
+      ..lineTo(left.dx, left.dy + depth + 0.008 * h)
+      ..close();
+    final edgeR = Path()
+      ..moveTo(bottom.dx, bottom.dy + depth)
+      ..lineTo(right.dx, right.dy + depth)
+      ..lineTo(right.dx, right.dy + depth + 0.008 * h)
+      ..lineTo(bottom.dx, bottom.dy + depth + 0.008 * h)
+      ..close();
+    canvas.drawPath(edgeL, Paint()..color = _earthEdge);
+    canvas.drawPath(edgeR, Paint()..color = _earthEdge);
+
     final topFace = Path()
       ..moveTo(top.dx, top.dy)
       ..lineTo(right.dx, right.dy)
       ..lineTo(bottom.dx, bottom.dy)
       ..lineTo(left.dx, left.dy)
       ..close();
-    canvas.drawPath(
-      topFace,
-      Paint()
-        ..color = soil
-            ? (checker ? _soilTop : Color.lerp(_soilTop, _soilSideL, 0.25)!)
-            : (checker ? _grassLight : _grassShade),
-    );
-    if (!soil) {
-      // 草块上的浅色高光小菱形(固定位置)。
-      final cx = (top.dx + bottom.dx) / 2;
-      final cy = (top.dy + bottom.dy) / 2;
+    canvas.drawPath(topFace, Paint()..color = _grassTop);
+    // 草面浅色光点(固定散布)。
+    for (final p in const [
+      (-0.9, -0.6),
+      (0.2, -1.1),
+      (1.0, -0.2),
+      (-1.2, 0.6),
+      (0.5, 1.1),
+      (-0.3, 0.3),
+    ]) {
       canvas.drawCircle(
-        Offset(cx, cy),
-        0.012 * w,
-        Paint()..color = const Color(0x55FFFFFF),
+        iso(p.$1, p.$2),
+        0.010 * w,
+        Paint()..color = _grassHi,
       );
     }
   }
 
-  /// 等距小苗:短茎 + 两片菱形叶。
-  void _isoSprout(Canvas canvas, double w, Offset base) {
+  /// 白框花畦:白框菱形环(带厚度) + 内凹深棕土壤 + 三株小苗。
+  void _whiteBed(
+    Canvas canvas,
+    double w,
+    Offset Function(double, double) iso,
+    int i,
+    int j,
+  ) {
+    final x0 = -0.95 + i * 1.0;
+    final y0 = -0.95 + j * 1.0;
+    final s = 0.9;
+    final top = iso(x0, y0);
+    final right = iso(x0 + s, y0);
+    final bottom = iso(x0 + s, y0 + s);
+    final left = iso(x0, y0 + s);
+    final depth = 0.016 * w;
+
+    final faceL = Path()
+      ..moveTo(left.dx, left.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(bottom.dx, bottom.dy + depth)
+      ..lineTo(left.dx, left.dy + depth)
+      ..close();
+    final faceR = Path()
+      ..moveTo(bottom.dx, bottom.dy)
+      ..lineTo(right.dx, right.dy)
+      ..lineTo(right.dx, right.dy + depth)
+      ..lineTo(bottom.dx, bottom.dy + depth)
+      ..close();
+    canvas.drawPath(faceL, Paint()..color = _frameSideL);
+    canvas.drawPath(faceR, Paint()..color = _frameSideR);
+    final frameTop = Path()
+      ..moveTo(top.dx, top.dy)
+      ..lineTo(right.dx, right.dy)
+      ..lineTo(bottom.dx, bottom.dy)
+      ..lineTo(left.dx, left.dy)
+      ..close();
+    canvas.drawPath(frameTop, Paint()..color = _frameTop);
+
+    // 内凹土壤(框内缩 0.18)。
+    final s0 = x0 + 0.18;
+    final soilTop = iso(s0, y0 + 0.18);
+    final soilRight = iso(x0 + s - 0.18, y0 + 0.18);
+    final soilBottom = iso(x0 + s - 0.18, y0 + s - 0.18);
+    final soilLeft = iso(s0, y0 + s - 0.18);
+    final soil = Path()
+      ..moveTo(soilTop.dx, soilTop.dy)
+      ..lineTo(soilRight.dx, soilRight.dy)
+      ..lineTo(soilBottom.dx, soilBottom.dy)
+      ..lineTo(soilLeft.dx, soilLeft.dy)
+      ..close();
+    canvas.drawPath(soil, Paint()..color = _soilTop);
+
+    // 三株小苗(固定点位)。
+    _sprout(canvas, w, iso(x0 + 0.30, y0 + 0.38), 1.0);
+    _sprout(canvas, w, iso(x0 + 0.62, y0 + 0.32), 0.85);
+    _sprout(canvas, w, iso(x0 + 0.46, y0 + 0.64), 0.9);
+  }
+
+  /// 小苗:短茎 + 双叶 + 顶芽(黄绿)。
+  void _sprout(Canvas canvas, double w, Offset base, double scale) {
     final stem = Paint()
       ..color = _leafDeep
-      ..strokeWidth = 0.008 * w
+      ..strokeWidth = 0.006 * w * scale
       ..strokeCap = StrokeCap.round;
-    canvas.drawLine(base, base - Offset(0, 0.05 * w), stem);
+    canvas.drawLine(base, base - Offset(0, 0.045 * w * scale), stem);
     final leaf = Paint()..color = _leafMain;
     canvas.drawOval(
       Rect.fromCenter(
-        center: base - Offset(0.025 * w, 0.045 * w),
-        width: 0.05 * w,
-        height: 0.02 * w,
+        center: base - Offset(0.022 * w * scale, 0.040 * w * scale),
+        width: 0.044 * w * scale,
+        height: 0.018 * w * scale,
       ),
       leaf,
     );
     canvas.drawOval(
       Rect.fromCenter(
-        center: base - Offset(-0.025 * w, 0.05 * w),
-        width: 0.05 * w,
-        height: 0.02 * w,
+        center: base - Offset(-0.022 * w * scale, 0.044 * w * scale),
+        width: 0.044 * w * scale,
+        height: 0.018 * w * scale,
       ),
       leaf,
     );
     canvas.drawCircle(
-      base - Offset(0, 0.065 * w),
-      0.014 * w,
+      base - Offset(0, 0.058 * w * scale),
+      0.012 * w * scale,
       Paint()..color = _leafLight,
     );
   }
 
-  /// 等距栅栏:后缘一排立柱(双面) + 连接横档。
+  /// 丛叶树:红棕干 + 十余片小叶团簇成的冠。
+  void _blobTree(Canvas canvas, double w, double h, Offset base) {
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          base.dx - 0.014 * w,
+          base.dy - 0.17 * h,
+          0.028 * w,
+          0.17 * h,
+        ),
+        Radius.circular(0.01 * w),
+      ),
+      Paint()..color = _trunk,
+    );
+    // 叶团(相对冠心的偏移/半径,三绿色交替)。
+    const spots = [
+      (-0.06, -0.04, 0.055, 2),
+      (0.06, -0.05, 0.05, 1),
+      (-0.02, -0.11, 0.05, 0),
+      (0.08, -0.10, 0.045, 2),
+      (-0.10, -0.09, 0.042, 1),
+      (0.0, -0.17, 0.04, 1),
+      (-0.06, -0.15, 0.04, 2),
+      (0.06, -0.16, 0.038, 0),
+      (0.0, -0.07, 0.06, 1),
+    ];
+    const shades = [_leafLight, _leafMain, _leafDeep];
+    final crown = base - Offset(0, 0.14 * h);
+    for (final spot in spots) {
+      canvas.drawCircle(
+        crown + Offset(spot.$1 * w, spot.$2 * h),
+        spot.$3 * w,
+        Paint()..color = shades[spot.$4],
+      );
+    }
+  }
+
+  /// 白栅栏(沿等距边):立柱(右缘阴影) + 双横档。
   void _isoFence(
     Canvas canvas,
     double w,
@@ -681,112 +772,87 @@ class _IsoGardenPainter extends CustomPainter {
   }) {
     final posts = <Offset>[];
     if (fromCol != null) {
-      for (var c = fromCol; c <= toCol!; c += 0.85) {
+      for (var c = fromCol; c <= toCol!; c += 0.575) {
         posts.add(iso(c, row!));
       }
     } else {
-      for (var r = fromRow!; r <= toRow!; r += 0.85) {
+      for (var r = fromRow!; r <= toRow!; r += 0.575) {
         posts.add(iso(col!, r));
       }
     }
-    // 横档(连接相邻柱)。
     for (var i = 0; i < posts.length - 1; i++) {
       final a = posts[i];
       final b = posts[i + 1];
-      final rail = Paint()
-        ..color = _woodShade
-        ..strokeWidth = 0.014 * w
-        ..strokeCap = StrokeCap.round;
       canvas.drawLine(
-        a - Offset(0, 0.055 * w),
-        b - Offset(0, 0.055 * w),
-        rail,
+        a - Offset(0, 0.052 * w),
+        b - Offset(0, 0.052 * w),
+        Paint()
+          ..color = _fenceShade
+          ..strokeWidth = 0.013 * w
+          ..strokeCap = StrokeCap.round,
       );
       canvas.drawLine(
-        a - Offset(0, 0.03 * w),
-        b - Offset(0, 0.03 * w),
-        rail..color = _wood,
+        a - Offset(0, 0.028 * w),
+        b - Offset(0, 0.028 * w),
+        Paint()
+          ..color = _fenceWhite
+          ..strokeWidth = 0.013 * w
+          ..strokeCap = StrokeCap.round,
       );
     }
-    // 立柱:圆角小柱 + 右侧阴影面 + 地面长影。
     for (final p in posts) {
       final shadow = Path()
         ..moveTo(p.dx, p.dy)
-        ..lineTo(p.dx + 0.05 * w, p.dy + 0.018 * w)
-        ..lineTo(p.dx + 0.02 * w, p.dy + 0.03 * w)
-        ..lineTo(p.dx - 0.01 * w, p.dy + 0.012 * w)
+        ..lineTo(p.dx + 0.045 * w, p.dy + 0.016 * w)
+        ..lineTo(p.dx + 0.018 * w, p.dy + 0.028 * w)
+        ..lineTo(p.dx - 0.008 * w, p.dy + 0.010 * w)
         ..close();
-      canvas.drawPath(shadow, Paint()..color = const Color(0x33407050));
+      canvas.drawPath(shadow, Paint()..color = const Color(0x3363472F));
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(p.dx - 0.011 * w, p.dy - 0.085 * w, 0.022 * w,
-              0.085 * w),
-          Radius.circular(0.008 * w),
+          Rect.fromLTWH(
+            p.dx - 0.010 * w,
+            p.dy - 0.080 * w,
+            0.020 * w,
+            0.080 * w,
+          ),
+          Radius.circular(0.007 * w),
         ),
-        Paint()..color = _wood,
+        Paint()..color = _fenceWhite,
       );
       canvas.drawRect(
-        Rect.fromLTWH(p.dx + 0.002 * w, p.dy - 0.085 * w, 0.009 * w, 0.085 * w),
-        Paint()..color = _woodShade,
+        Rect.fromLTWH(
+          p.dx + 0.002 * w,
+          p.dy - 0.080 * w,
+          0.008 * w,
+          0.080 * w,
+        ),
+        Paint()..color = _fenceShade,
       );
     }
   }
 
-  /// 等距树:地面长影 + 树干 + 三球冠(径向渐变)。
-  void _isoTree(Canvas canvas, double w, double h, Offset base) {
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: base + Offset(0.03 * w, 0.008 * h),
-        width: 0.22 * w,
-        height: 0.05 * h,
-      ),
-      Paint()..color = const Color(0x33407050),
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(base.dx - 0.014 * w, base.dy - 0.12 * h, 0.028 * w,
-            0.12 * h),
-        Radius.circular(0.01 * w),
-      ),
-      Paint()..color = _trunk,
-    );
-    _isoBall(canvas, Offset(base.dx, base.dy - 0.16 * h), 0.075 * w, _leafDeep);
-    _isoBall(canvas, Offset(base.dx - 0.05 * w, base.dy - 0.12 * h), 0.055 * w,
-        _leafMain);
-    _isoBall(canvas, Offset(base.dx + 0.05 * w, base.dy - 0.125 * h), 0.05 * w,
-        _leafMain);
-    _isoBall(canvas, Offset(base.dx - 0.01 * w, base.dy - 0.2 * h), 0.045 * w,
-        _leafLight);
-  }
-
-  /// 等距灌木:小影 + 双球。
-  void _isoBush(Canvas canvas, double w, Offset base) {
-    canvas.drawOval(
-      Rect.fromCenter(
-        center: base + Offset(0.015 * w, 0.006 * w),
-        width: 0.14 * w,
-        height: 0.03 * w,
-      ),
-      Paint()..color = const Color(0x33407050),
-    );
-    _isoBall(canvas, base - Offset(0.02 * w, 0.03 * w), 0.04 * w, _leafMain);
-    _isoBall(canvas, base + Offset(0.025 * w, -0.025 * w), 0.03 * w, _leafLight);
-  }
-
-  /// 立体球:径向渐变(左上受光)。
-  void _isoBall(Canvas canvas, Offset c, double r, Color base) {
+  /// 前景大丛灌(贴屏底,两层冠 + 高光)。
+  void _bushLow(Canvas canvas, double w, Offset base, double r) {
     canvas.drawCircle(
-      c,
+      base + Offset(r * 0.12, r * 0.10),
       r,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.4, -0.4),
-          colors: [
-            Color.lerp(base, const Color(0xFFFFFFFF), 0.35)!,
-            base,
-            Color.lerp(base, const Color(0xFF1E4D3A), 0.25)!,
-          ],
-        ).createShader(Rect.fromCircle(center: c, radius: r)),
+      Paint()..color = _bushFace,
+    );
+    canvas.drawCircle(
+      base - Offset(r * 0.28, r * 0.30),
+      r * 0.78,
+      Paint()..color = _bushTop,
+    );
+    canvas.drawCircle(
+      base + Offset(r * 0.38, -r * 0.18),
+      r * 0.5,
+      Paint()..color = _bushFace,
+    );
+    canvas.drawCircle(
+      base - Offset(r * 0.42, r * 0.46),
+      r * 0.24,
+      Paint()..color = _bushHi,
     );
   }
 
