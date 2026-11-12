@@ -2,6 +2,7 @@ import 'package:base_utils/base_utils.dart';
 import 'package:core_profile/core_profile.dart';
 import 'package:core_reminder/core_reminder.dart';
 import 'package:feature_design_system/feature_design_system.dart';
+import 'package:feature_game/feature_game.dart';
 import 'package:feature_home/feature_home.dart';
 import 'package:feature_onboarding/feature_onboarding.dart';
 import 'package:feature_profile/feature_profile.dart';
@@ -60,6 +61,7 @@ class _MainShellState extends State<MainShell> {
                     ('拉伸页（设计稿 05–06）', () => _pushStretch(context)),
                     ('演示节奏（1 分钟间隔）开关', () => _toggleDemoRhythm(context)),
                     ('发送测试提醒（通知链路自验）', _sendTestReminder),
+                    ('花园立体风格 Demo', () => _pushGardenStyleDemo(context)),
                   ]
                 : const [],
           ),
@@ -99,6 +101,16 @@ class _MainShellState extends State<MainShell> {
 
   void _pushStretch(BuildContext context) {
     StretchScreenRoute.push(context);
+  }
+
+
+  /// 花园立体画风 Demo(实验:黏土立体 / 等距 2.5D 对比,仅 dev 渠道)。
+  void _pushGardenStyleDemo(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const GardenStyleDemoScreen(),
+      ),
+    );
   }
 
   /// dev 渠道「发送测试提醒」：直接发一条本地通知（v8 自用户页面移入）。
