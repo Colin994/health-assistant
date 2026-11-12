@@ -138,20 +138,20 @@ class _ClayGardenPainter extends CustomPainter {
     );
 
     _sun(canvas, w, h);
-    _cloud(canvas, w, h, Offset(0.24 * w, 0.16 * h), 0.13 * w);
-    _cloud(canvas, w, h, Offset(0.62 * w, 0.09 * h), 0.09 * w);
+    _cloud(canvas, w, h, Offset(0.18 * w, 0.26 * h), 0.13 * w);
+    _cloud(canvas, w, h, Offset(0.44 * w, 0.13 * h), 0.09 * w);
     _canopy(canvas, w, h, left: true);
     _canopy(canvas, w, h, left: false);
     _ground(canvas, w, h);
     _hedge(canvas, w, h);
     _fence(canvas, w, h);
-    _bed(canvas, w, h, Offset(0.22 * w, 0.78 * h), 0.30 * w, flower: false);
-    _bed(canvas, w, h, Offset(0.78 * w, 0.78 * h), 0.30 * w, flower: true);
+    _bed(canvas, w, h, Offset(0.22 * w, 0.80 * h), 0.30 * w, flower: false);
+    _bed(canvas, w, h, Offset(0.78 * w, 0.80 * h), 0.30 * w, flower: true);
   }
 
   /// 黏土太阳:径向渐变球体 + 左上高光 + 柔投影。
   void _sun(Canvas canvas, double w, double h) {
-    final center = Offset(0.82 * w, 0.13 * h);
+    final center = Offset(0.63 * w, 0.22 * h);
     final r = 0.085 * w;
     canvas.drawCircle(
       center + Offset(0.008 * w, 0.014 * h),
@@ -255,7 +255,7 @@ class _ClayGardenPainter extends CustomPainter {
 
   /// 草地大圆角黏土板:渐变 + 顶缘内侧阴影带。
   void _ground(Canvas canvas, double w, double h) {
-    final slab = Rect.fromLTWH(-0.1 * w, 0.50 * h, 1.2 * w, 0.6 * h);
+    final slab = Rect.fromLTWH(-0.1 * w, 0.46 * h, 1.2 * w, 0.64 * h);
     canvas.drawRRect(
       RRect.fromRectAndCorners(
         slab,
@@ -271,7 +271,7 @@ class _ClayGardenPainter extends CustomPainter {
     );
     canvas.drawRRect(
       RRect.fromRectAndCorners(
-        Rect.fromLTWH(-0.1 * w, 0.50 * h, 1.2 * w, 0.02 * h),
+        Rect.fromLTWH(-0.1 * w, 0.46 * h, 1.2 * w, 0.02 * h),
         topLeft: const Radius.circular(36),
         topRight: Radius.circular(36),
       ),
@@ -281,10 +281,14 @@ class _ClayGardenPainter extends CustomPainter {
 
   /// 黏土灌木:每颗为深阶底影 + 主色球 + 高光弧。
   void _hedge(Canvas canvas, double w, double h) {
-    final y = 0.55 * h;
-    final r = 0.045 * h;
-    for (double x = -0.02 * w; x < 1.05 * w; x += 0.055 * w) {
-      canvas.drawCircle(Offset(x + r * 0.15, y + r * 0.2), r, Paint()..color = _clayDeep);
+    final y = 0.495 * h;
+    final r = 0.028 * h;
+    for (double x = -0.01 * w; x < 1.02 * w; x += 0.048 * w) {
+      canvas.drawCircle(
+        Offset(x + r * 0.15, y + r * 0.2),
+        r,
+        Paint()..color = _clayDeep,
+      );
       _clayBall(canvas, Offset(x, y), r, _clayDeep, _clayMain);
       canvas.drawCircle(
         Offset(x - r * 0.3, y - r * 0.35),
@@ -296,8 +300,8 @@ class _ClayGardenPainter extends CustomPainter {
 
   /// 黏土栅栏:横档带底缘阴影,尖桩左亮右暗渐变 + 接地小影。
   void _fence(Canvas canvas, double w, double h) {
-    final top = 0.60 * h;
-    final bottom = 0.74 * h;
+    final top = 0.54 * h;
+    final bottom = 0.68 * h;
     for (final railY in [top + 0.025 * h, bottom - 0.05 * h]) {
       canvas.drawRect(
         Rect.fromLTWH(0, railY + 0.006 * h, w, 0.018 * h),
@@ -478,25 +482,25 @@ class _IsoGardenPainter extends CustomPainter {
         ).createShader(Rect.fromCircle(center: sun, radius: 0.07 * w)),
     );
 
-    // 远山两层(景深)。
+    // 远山两层(景深,藏在平台后缘)。
     canvas.drawCircle(
-      Offset(0.16 * w, 0.52 * h),
+      Offset(0.16 * w, 0.40 * h),
+      0.26 * w,
+      Paint()..color = _hillFar,
+    );
+    canvas.drawCircle(
+      Offset(0.86 * w, 0.42 * h),
       0.30 * w,
       Paint()..color = _hillFar,
     );
     canvas.drawCircle(
-      Offset(0.86 * w, 0.54 * h),
-      0.34 * w,
-      Paint()..color = _hillFar,
-    );
-    canvas.drawCircle(
-      Offset(0.55 * w, 0.58 * h),
-      0.32 * w,
+      Offset(0.55 * w, 0.44 * h),
+      0.28 * w,
       Paint()..color = _hillNear,
     );
 
     // 平台底座(带厚度的大菱形草地)。
-    const origin = Offset(0.5, 0.30);
+    const origin = Offset(0.5, 0.26);
     final tileW = 0.34 * w;
     final tileH = tileW / 2;
     Offset iso(double col, double row) => Offset(
@@ -505,10 +509,10 @@ class _IsoGardenPainter extends CustomPainter {
         );
 
     // 底座立面(先画左右两块深色侧面)。
-    final baseL = iso(-0.9, 3.1);
-    final baseB = iso(3.1, 3.1);
-    final baseR = iso(3.1, -0.9);
-    final baseDepth = 0.06 * h;
+    final baseL = iso(-1.4, 3.6);
+    final baseB = iso(3.6, 3.6);
+    final baseR = iso(3.6, -1.4);
+    final baseDepth = 0.07 * h;
     final basePath = Path()
       ..moveTo(baseL.dx, baseL.dy)
       ..lineTo(baseB.dx, baseB.dy)
@@ -527,7 +531,7 @@ class _IsoGardenPainter extends CustomPainter {
     // 草地顶面(大菱形,微渐变)。
     final groundTop = Path()
       ..moveTo(baseL.dx, baseL.dy)
-      ..lineTo(iso(3.1, -0.9).dx, iso(-0.9, -0.9).dy)
+      ..lineTo(iso(3.6, -1.4).dx, iso(-1.4, -1.4).dy)
       ..lineTo(baseR.dx, baseR.dy)
       ..lineTo(baseB.dx, baseB.dy)
       ..close();
@@ -542,25 +546,26 @@ class _IsoGardenPainter extends CustomPainter {
     );
 
     // 背边栅栏(两段,先画在地块后面)。
-    _isoFence(canvas, w, h, iso, fromCol: -0.6, toCol: 2.8, row: -0.9);
-    _isoFence(canvas, w, h, iso, col: -0.9, fromRow: -0.6, toRow: 2.8);
+    _isoFence(canvas, w, h, iso, fromCol: -0.9, toCol: 3.0, row: -1.1);
+    _isoFence(canvas, w, h, iso, col: -1.1, fromRow: -0.9, toRow: 3.0);
 
     // 地块网格(按 col+row 深度排序绘制,中央 2×2 为土壤花畦)。
     const plots = {(1, 1), (2, 1), (1, 2), (2, 2)};
-    for (var sum = 0; sum <= 4; sum++) {
-      for (var col = 0; col <= sum; col++) {
+    for (var sum = -3; sum <= 7; sum++) {
+      for (var col = -2; col <= sum; col++) {
         final row = sum - col;
-        if (row > 3 || col > 3) {
+        if (row < -2 || col < -2 || row > 3 || col > 3) {
           continue;
         }
         _isoTile(
           canvas,
           w,
-          iso(col - 0.05, row - 0.05),
-          iso(col + 1.05, row - 0.05),
-          iso(col + 1.05, row + 1.05),
-          iso(col - 0.05, row + 1.05),
+          iso(col - 0.04, row - 0.04),
+          iso(col + 1.04, row - 0.04),
+          iso(col + 1.04, row + 1.04),
+          iso(col - 0.04, row + 1.04),
           soil: plots.contains((col, row)),
+          checker: (col + row).isOdd,
         );
       }
     }
@@ -571,14 +576,15 @@ class _IsoGardenPainter extends CustomPainter {
     }
 
     // 等距树(左后/右后各一,先画靠后的)。
-    _isoTree(canvas, w, h, iso(-0.35, -0.15));
-    _isoTree(canvas, w, h, iso(2.75, 0.1));
-    // 前景灌木与地面长影。
-    _isoBush(canvas, w, iso(3.0, 2.6));
-    _isoBush(canvas, w, iso(-0.5, 2.2));
+    _isoTree(canvas, w, h, iso(-0.55, -0.35));
+    _isoTree(canvas, w, h, iso(2.85, 0.0));
+    // 前景灌木(草块前景角,避开中央花畦)。
+    _isoBush(canvas, w, iso(-0.55, 3.1));
+    _isoBush(canvas, w, iso(3.1, -0.55));
   }
 
-  /// 菱形地块:顶面 + 左立面 + 右立面(厚度),土壤块换土壤色。
+  /// 菱形地块:顶面 + 左立面 + 右立面(厚度),土壤块换土壤色;
+  /// 相邻同色块间留 0.08 缝隙,土壤块棋盘微调避免融合。
   void _isoTile(
     Canvas canvas,
     double w,
@@ -587,6 +593,7 @@ class _IsoGardenPainter extends CustomPainter {
     Offset bottom,
     Offset left, {
     required bool soil,
+    bool checker = false,
   }) {
     final depth = 0.022 * w;
     final faceL = Path()
@@ -611,10 +618,13 @@ class _IsoGardenPainter extends CustomPainter {
       ..close();
     canvas.drawPath(
       topFace,
-      Paint()..color = soil ? _soilTop : _grassLight,
+      Paint()
+        ..color = soil
+            ? (checker ? _soilTop : Color.lerp(_soilTop, _soilSideL, 0.25)!)
+            : (checker ? _grassLight : _grassShade),
     );
     if (!soil) {
-      // 草块上的浅色高光小菱形(随机但固定位置)。
+      // 草块上的浅色高光小菱形(固定位置)。
       final cx = (top.dx + bottom.dx) / 2;
       final cy = (top.dy + bottom.dy) / 2;
       canvas.drawCircle(
