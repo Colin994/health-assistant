@@ -22,8 +22,8 @@ class TagEditorScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('编辑健康标签')),
+      backgroundColor: context.tokens.background,
+      appBar: AppBar(title: Text('编辑健康标签')),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -35,12 +35,12 @@ class TagEditorScreen extends StatelessWidget {
                 ),
                 children: [
                   const SizedBox(height: AppSpacing.sm),
-                  const Text('你的身体状况与习惯', style: AppTypography.display),
+                  Text('你的身体状况与习惯', style: AppTypography.display),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     '勾选符合的项，提醒会更懂你 · 保存后自动开启对应提醒',
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -66,8 +66,8 @@ class TagEditorScreen extends StatelessWidget {
               ),
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor: context.tokens.primaryText,
+                  foregroundColor: context.tokens.onPrimary,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(AppRadius.pill)),
                   ),
@@ -106,26 +106,26 @@ class _TagChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs + 2,
+          vertical: AppSpacing.md,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primarySurface : AppColors.surface,
+          color: selected ? context.tokens.primarySurface : context.tokens.surface,
           borderRadius: const BorderRadius.all(Radius.circular(AppRadius.pill)),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.textDisabled,
+            color: selected ? context.tokens.primarySurface : context.tokens.textDisabled,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (selected) ...[
-              const Icon(Icons.check, size: 14, color: AppColors.primary),
+              Icon(Icons.check, size: 14, color: context.tokens.primaryText),
               const SizedBox(width: AppSpacing.xs),
             ],
             Text(
               label,
               style: AppTypography.bodyMedium.copyWith(
-                color: selected ? AppColors.primary : AppColors.textPrimary,
+                color: selected ? context.tokens.primaryText : context.tokens.textPrimary,
               ),
             ),
           ],

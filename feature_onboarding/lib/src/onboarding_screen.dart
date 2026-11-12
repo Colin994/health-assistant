@@ -61,7 +61,11 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
+      // 系统开启「移除动画」(Reduce Motion)时直接切换，不做渐变
+      // （2026-11-12 audit P2：此前未读取 MediaQuery.disableAnimations）。
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
       child: switch (state.step) {
         OnboardingStep.value => _ValueStep(
           key: const ValueKey('value'),
@@ -91,7 +95,7 @@ class _ValueStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.tokens.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageMargin),
@@ -102,10 +106,10 @@ class _ValueStep extends StatelessWidget {
                 alignment: Alignment.centerRight,
                 child: TextButton(
                   onPressed: () => onIntent(const SkipPressed()),
-                  child: const Text(
+                  child: Text(
                     '跳过',
                     style: TextStyle(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                       fontSize: 14,
                     ),
                   ),
@@ -114,7 +118,7 @@ class _ValueStep extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               const _CountdownNotificationCard(),
               const SizedBox(height: AppSpacing.xl),
-              const Text('最懂你工作节奏的', style: AppTypography.display),
+              Text('最懂你工作节奏的', style: AppTypography.display),
               const SizedBox(height: AppSpacing.lg),
               const _SellingPoint(
                 icon: Icons.schedule,
@@ -131,11 +135,11 @@ class _ValueStep extends StatelessWidget {
                 title: '零负担',
                 description: '久坐、喝水、护眼，1 分钟微休息',
               ),
-              const Spacer(),
+              Spacer(),
               FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor: context.tokens.primaryText,
+                  foregroundColor: context.tokens.onPrimary,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(
                       Radius.circular(AppRadius.pill),
@@ -144,7 +148,7 @@ class _ValueStep extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                 ),
                 onPressed: () => onIntent(const NextPressed()),
-                child: const Text('开始使用', style: AppTypography.subtitle),
+                child: Text('开始使用', style: AppTypography.subtitle),
               ),
               const SizedBox(height: AppSpacing.xl),
             ],
@@ -166,8 +170,8 @@ class _CountdownNotificationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
         boxShadow: AppShadows.cardSubtle,
       ),
@@ -176,14 +180,14 @@ class _CountdownNotificationCard extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: const BoxDecoration(
-              color: AppColors.primarySurface,
+            decoration: BoxDecoration(
+              color: context.tokens.primarySurface,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.timer_outlined,
               size: 22,
-              color: AppColors.primary,
+              color: context.tokens.primary,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -191,14 +195,14 @@ class _CountdownNotificationCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('坐了 55 分钟啦', style: AppTypography.subtitle),
+                Text('坐了 55 分钟啦', style: AppTypography.subtitle),
                 const SizedBox(height: AppSpacing.xs),
                 Text('起来活动一下吧', style: AppTypography.caption),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   '健康提醒 · 现在',
                   style: AppTypography.micro.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.tokens.textSecondary,
                   ),
                 ),
               ],
@@ -227,7 +231,7 @@ class _SellingPoint extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: AppColors.primary),
+          Icon(icon, size: 20, color: context.tokens.primary),
           const SizedBox(width: AppSpacing.md),
           Text(title, style: AppTypography.bodyMedium),
           const SizedBox(width: AppSpacing.sm),
@@ -235,7 +239,7 @@ class _SellingPoint extends StatelessWidget {
             child: Text(
               description,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondary,
+                color: context.tokens.textSecondary,
               ),
             ),
           ),
@@ -259,7 +263,7 @@ class _TagsStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.tokens.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -267,8 +271,8 @@ class _TagsStep extends StatelessWidget {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  color: AppColors.textPrimary,
+                  icon: Icon(Icons.chevron_left),
+                  color: context.tokens.textPrimary,
                   onPressed: () => onIntent(const BackPressed()),
                 ),
               ],
@@ -279,12 +283,12 @@ class _TagsStep extends StatelessWidget {
                   horizontal: AppSpacing.pageMargin,
                 ),
                 children: [
-                  const Text('你的身体状况与习惯', style: AppTypography.display),
+                  Text('你的身体状况与习惯', style: AppTypography.display),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     '让我们更懂你 · 可随时修改',
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
@@ -308,14 +312,14 @@ class _TagsStep extends StatelessWidget {
                         ? '选择标签后，提醒会像这样：'
                         : '已选「${state.selectedTags.first}」，提醒会像这样：',
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: const BoxDecoration(
-                      color: AppColors.surface,
+                    decoration: BoxDecoration(
+                      color: context.tokens.surface,
                       borderRadius: BorderRadius.all(
                         Radius.circular(AppRadius.lg),
                       ),
@@ -338,8 +342,8 @@ class _TagsStep extends StatelessWidget {
               ),
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor: context.tokens.primaryText,
+                  foregroundColor: context.tokens.onPrimary,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(
                       Radius.circular(AppRadius.pill),
@@ -350,7 +354,7 @@ class _TagsStep extends StatelessWidget {
                 onPressed: state.canProceedTags
                     ? () => onIntent(const NextPressed())
                     : null,
-                child: const Text('下一步', style: AppTypography.subtitle),
+                child: Text('下一步', style: AppTypography.subtitle),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -380,29 +384,24 @@ class _TagChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.pill),
       onTap: onTap,
       child: Container(
-        padding: hint.isEmpty
-            ? const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
-              )
-            : const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.xs + 2,
-              ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.md,
+        ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primarySurface : AppColors.surface,
+          color: selected ? context.tokens.primarySurface : context.tokens.surface,
           borderRadius: const BorderRadius.all(
             Radius.circular(AppRadius.pill),
           ),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.textDisabled,
+            color: selected ? context.tokens.primary : context.tokens.textDisabled,
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (selected) ...[
-              const Icon(Icons.check, size: 14, color: AppColors.primary),
+              Icon(Icons.check, size: 14, color: context.tokens.primaryText),
               const SizedBox(width: AppSpacing.xs),
             ],
             hint.isEmpty
@@ -410,7 +409,7 @@ class _TagChip extends StatelessWidget {
                     label,
                     style: AppTypography.bodyMedium.copyWith(
                       color:
-                          selected ? AppColors.primary : AppColors.textPrimary,
+                          selected ? context.tokens.primaryText : context.tokens.textPrimary,
                     ),
                   )
                 : Column(
@@ -420,14 +419,14 @@ class _TagChip extends StatelessWidget {
                         label,
                         style: AppTypography.bodyMedium.copyWith(
                           color: selected
-                              ? AppColors.primary
-                              : AppColors.textPrimary,
+                              ? context.tokens.primaryText
+                              : context.tokens.textPrimary,
                         ),
                       ),
                       Text(
                         hint,
                         style: AppTypography.micro.copyWith(
-                          color: AppColors.textSecondary,
+                          color: context.tokens.textSecondary,
                         ),
                       ),
                     ],
@@ -455,7 +454,7 @@ class _PermissionsStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.tokens.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -463,8 +462,8 @@ class _PermissionsStep extends StatelessWidget {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  color: AppColors.textPrimary,
+                  icon: Icon(Icons.chevron_left),
+                  color: context.tokens.textPrimary,
                   onPressed: () => onIntent(const BackPressed()),
                 ),
               ],
@@ -475,12 +474,12 @@ class _PermissionsStep extends StatelessWidget {
                   horizontal: AppSpacing.pageMargin,
                 ),
                 children: [
-                  const Text('开启提醒', style: AppTypography.display),
+                  Text('开启提醒', style: AppTypography.display),
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     '开启通知，倒计时到了准时提醒你',
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -498,10 +497,10 @@ class _PermissionsStep extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.lock_outline,
                         size: 14,
-                        color: AppColors.textSecondary,
+                        color: context.tokens.textSecondary,
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
@@ -512,14 +511,14 @@ class _PermissionsStep extends StatelessWidget {
                               '提醒由本地倒计时生成，不采集健康数据；'
                               '连接手表（Pro）上线后才读取活动记录。',
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textSecondary,
+                                color: context.tokens.textSecondary,
                               ),
                             ),
                             const SizedBox(height: AppSpacing.xs),
                             Text(
                               '久坐 · 喝水 · 护眼，三类提醒均可随时关闭。',
                               style: AppTypography.caption.copyWith(
-                                color: AppColors.textSecondary,
+                                color: context.tokens.textSecondary,
                               ),
                             ),
                           ],
@@ -536,8 +535,8 @@ class _PermissionsStep extends StatelessWidget {
               ),
               child: FilledButton(
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: AppColors.onPrimary,
+                  backgroundColor: context.tokens.primaryText,
+                  foregroundColor: context.tokens.onPrimary,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.all(
                       Radius.circular(AppRadius.pill),
@@ -546,7 +545,7 @@ class _PermissionsStep extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
                 ),
                 onPressed: () => onIntent(const NextPressed()),
-                child: const Text('进入应用', style: AppTypography.subtitle),
+                child: Text('进入应用', style: AppTypography.subtitle),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -565,8 +564,8 @@ class _ProWatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
       ),
       child: Row(
@@ -574,14 +573,14 @@ class _ProWatchCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(
-              color: AppColors.primarySurface,
+            decoration: BoxDecoration(
+              color: context.tokens.primarySurface,
               shape: BoxShape.circle,
             ),
-            child: const Icon(
+            child: Icon(
               Icons.watch_outlined,
               size: 22,
-              color: AppColors.primary,
+              color: context.tokens.primary,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -607,8 +606,8 @@ class _ProWatchCard extends StatelessWidget {
                         horizontal: AppSpacing.sm,
                         vertical: 2,
                       ),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primary,
+                      decoration: BoxDecoration(
+                        color: context.tokens.primary,
                         borderRadius: BorderRadius.all(
                           Radius.circular(AppRadius.pill),
                         ),
@@ -616,7 +615,7 @@ class _ProWatchCard extends StatelessWidget {
                       child: Text(
                         'PRO',
                         style: AppTypography.micro.copyWith(
-                          color: AppColors.onPrimary,
+                          color: context.tokens.onPrimary,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -627,7 +626,7 @@ class _ProWatchCard extends StatelessWidget {
                 Text(
                   '更准的久坐判定 · 付费功能，即将上线',
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.tokens.textSecondary,
                   ),
                 ),
               ],
@@ -674,8 +673,8 @@ class _PermissionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
       ),
       child: Row(
@@ -683,11 +682,11 @@ class _PermissionCard extends StatelessWidget {
           Container(
             width: 44,
             height: 44,
-            decoration: const BoxDecoration(
-              color: AppColors.primarySurface,
+            decoration: BoxDecoration(
+              color: context.tokens.primarySurface,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, size: 22, color: AppColors.primary),
+            child: Icon(icon, size: 22, color: context.tokens.primary),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -699,7 +698,7 @@ class _PermissionCard extends StatelessWidget {
                 Text(
                   description,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.tokens.textSecondary,
                   ),
                 ),
               ],
@@ -710,24 +709,24 @@ class _PermissionCard extends StatelessWidget {
               ? Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.check_circle,
                       size: 16,
-                      color: AppColors.primary,
+                      color: context.tokens.primary,
                     ),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       '已开启',
                       style: AppTypography.captionMedium.copyWith(
-                        color: AppColors.primary,
+                        color: context.tokens.primary,
                       ),
                     ),
                   ],
                 )
               : OutlinedButton(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary),
+                    foregroundColor: context.tokens.primary,
+                    side: BorderSide(color: context.tokens.primary),
                     shape: const RoundedRectangleBorder(
                       borderRadius: BorderRadius.all(
                         Radius.circular(AppRadius.pill),

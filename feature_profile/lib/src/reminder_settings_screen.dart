@@ -60,8 +60,8 @@ class ReminderSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('提醒设置')),
+      backgroundColor: context.tokens.background,
+      appBar: AppBar(title: Text('提醒设置')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageMargin),
@@ -69,13 +69,13 @@ class ReminderSettingsScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
 
             // ---- 提醒内容（三类同级） ----
-            const Text('提醒内容', style: AppTypography.subtitle),
+            Text('提醒内容', style: AppTypography.subtitle),
             const SizedBox(height: AppSpacing.sm),
             Container(
               padding: const EdgeInsets.all(AppSpacing.md),
               margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
+              decoration: BoxDecoration(
+                color: context.tokens.surface,
                 borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
               ),
               child: Column(
@@ -131,7 +131,7 @@ class ReminderSettingsScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.lg),
 
             // ---- 免打扰（与提醒内容分层） ----
-            const Text('免打扰', style: AppTypography.subtitle),
+            Text('免打扰', style: AppTypography.subtitle),
             const SizedBox(height: AppSpacing.sm),
             _SettingsCard(
               title: '静音时段',
@@ -174,12 +174,12 @@ class _DensityOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primarySurface : AppColors.background,
+          color: selected ? context.tokens.primarySurface : context.tokens.background,
           borderRadius: const BorderRadius.all(
             Radius.circular(AppRadius.lg),
           ),
           border: Border.all(
-            color: selected ? AppColors.primary : AppColors.textDisabled,
+            color: selected ? context.tokens.primary : context.tokens.textDisabled,
           ),
         ),
         child: Column(
@@ -187,14 +187,14 @@ class _DensityOption extends StatelessWidget {
             Text(
               density.label,
               style: AppTypography.bodyMedium.copyWith(
-                color: selected ? AppColors.primary : AppColors.textPrimary,
+                color: selected ? context.tokens.primaryText : context.tokens.textPrimary,
               ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               density.thresholdLabel,
               style: AppTypography.caption.copyWith(
-                color: AppColors.textSecondary,
+                color: context.tokens.textSecondary,
               ),
             ),
           ],
@@ -223,8 +223,8 @@ class _ToggleCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
       ),
       child: Row(
@@ -238,7 +238,7 @@ class _ToggleCard extends StatelessWidget {
                 Text(
                   subtitle,
                   style: AppTypography.caption.copyWith(
-                    color: AppColors.textSecondary,
+                    color: context.tokens.textSecondary,
                   ),
                 ),
               ],
@@ -246,7 +246,7 @@ class _ToggleCard extends StatelessWidget {
           ),
           Switch(
             value: value,
-            activeThumbColor: AppColors.primary,
+            activeThumbColor: context.tokens.onPrimary,
             onChanged: onChanged,
           ),
         ],
@@ -274,8 +274,8 @@ class _SettingsCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
+        decoration: BoxDecoration(
+          color: context.tokens.surface,
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
         ),
         child: Row(
@@ -289,16 +289,16 @@ class _SettingsCard extends StatelessWidget {
                   Text(
                     subtitle,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: AppColors.textTertiary,
+              color: context.tokens.textTertiary,
             ),
           ],
         ),

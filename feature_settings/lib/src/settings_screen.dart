@@ -25,14 +25,14 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('设置')),
+      backgroundColor: context.tokens.background,
+      appBar: AppBar(title: Text('设置')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageMargin),
           children: [
             const SizedBox(height: AppSpacing.sm),
-            const Text('通用', style: AppTypography.subtitle),
+            Text('通用', style: AppTypography.subtitle),
             const SizedBox(height: AppSpacing.sm),
             _SettingsRow(
               title: '连接智能手表',
@@ -56,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
             ),
             if (devEntries.isNotEmpty) ...[
               const SizedBox(height: AppSpacing.lg),
-              const Text('开发者', style: AppTypography.subtitle),
+              Text('开发者', style: AppTypography.subtitle),
               const SizedBox(height: AppSpacing.sm),
               for (final (label, onTap) in devEntries)
                 _SettingsRow(title: label, subtitle: '', onTap: onTap),
@@ -64,7 +64,7 @@ class SettingsScreen extends StatelessWidget {
               Text(
                 '仅调试构建显示 · 正式版隐藏',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.tokens.textSecondary,
                 ),
               ),
             ],
@@ -99,8 +99,8 @@ class _SettingsRow extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.md),
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
+        decoration: BoxDecoration(
+          color: context.tokens.surface,
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
         ),
         child: Row(
@@ -131,17 +131,17 @@ class _SettingsRow extends StatelessWidget {
                     Text(
                       subtitle,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.tokens.textSecondary,
                       ),
                     ),
                   ],
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               size: 20,
-              color: AppColors.textTertiary,
+              color: context.tokens.textTertiary,
             ),
           ],
         ),
@@ -161,14 +161,14 @@ class _ProBadge extends StatelessWidget {
         horizontal: AppSpacing.sm,
         vertical: 2,
       ),
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
+      decoration: BoxDecoration(
+        color: context.tokens.primaryText,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.pill)),
       ),
       child: Text(
         'PRO',
         style: AppTypography.micro.copyWith(
-          color: AppColors.onPrimary,
+          color: context.tokens.onPrimary,
           fontWeight: FontWeight.w700,
         ),
       ),

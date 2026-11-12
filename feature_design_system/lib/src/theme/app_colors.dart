@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 
 /// 色彩 token（《设计规范.md §1》）。
 ///
-/// 双色系（青绿主色 + 墨绿文字）+ 白底；层级全部用主色/文字色的
-/// 透明度阶梯表达，严禁另起新色相。
+/// 双色系（青绿主色 + 墨绿文字）+ 白底；强调背景走主色透明度阶梯，
+/// 文字色为绿灰实色并满足对比度预算（正文/辅助文字 ≥4.5:1），
+/// 严禁另起新色相。
 abstract final class AppColors {
-  /// 主品牌色：选中态、强调文字、按钮、链接、标签。
+  /// 主品牌色：选中态边框、按钮/徽章底、大图形。不作小字文字色
+  /// （对白底仅约 2.0:1），文字与功能性图标一律用 [primaryText]。
   static const Color primary = Color(0xFF27C3B0);
+
+  /// 深青绿文字色（同色相加深）：小字文字与功能性图标专用。
+  /// 白底约 5.2:1、青绿 10% 底约 4.8:1，过 WCAG AA（2026-11-12 对比度整改）。
+  static const Color primaryText = Color(0xFF0B7A6D);
 
   /// 主色背景上的文字。
   static const Color onPrimary = Color(0xFFFFFFFF);
@@ -14,13 +20,13 @@ abstract final class AppColors {
   /// 标题与正文主色（墨绿炭，非纯黑）。
   static const Color textPrimary = Color(0xFF28332F);
 
-  /// 次要信息：日期、作者、辅助说明（50%）。
-  static const Color textSecondary = Color(0x8028332F);
+  /// 次要信息：日期、作者、辅助说明（绿灰实色，白底约 6.3:1）。
+  static const Color textSecondary = Color(0xFF5A625F);
 
-  /// 占位符（30%）。
-  static const Color textTertiary = Color(0x4D28332F);
+  /// 占位符（绿灰实色，白底约 4.9:1）。
+  static const Color textTertiary = Color(0xFF6B7370);
 
-  /// 不可用状态（10%）。
+  /// 不可用状态（10%，仅装饰：分隔线、无信息 chevron）。
   static const Color textDisabled = Color(0x1A28332F);
 
   /// 页面底色。

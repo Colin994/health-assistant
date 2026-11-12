@@ -32,8 +32,8 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('我的')),
+      backgroundColor: context.tokens.background,
+      appBar: AppBar(title: Text('我的')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pageMargin),
@@ -41,15 +41,15 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
 
             // ---- 提醒（置顶：行为个性化入口） ----
-            const Text('提醒', style: AppTypography.subtitle),
+            Text('提醒', style: AppTypography.subtitle),
             const SizedBox(height: AppSpacing.sm),
             InkWell(
               borderRadius: BorderRadius.circular(AppRadius.lg),
               onTap: onReminderSettings,
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
+                decoration: BoxDecoration(
+                  color: context.tokens.surface,
                   borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
                 ),
                 child: Row(
@@ -58,21 +58,21 @@ class ProfileScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('提醒设置', style: AppTypography.bodyMedium),
+                          Text('提醒设置', style: AppTypography.bodyMedium),
                           const SizedBox(height: AppSpacing.xs),
                           Text(
                             '久坐 · 喝水 · 护眼 · 免打扰',
                             style: AppTypography.caption.copyWith(
-                              color: AppColors.textSecondary,
+                              color: context.tokens.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Icon(
+                    Icon(
                       Icons.chevron_right,
                       size: 20,
-                      color: AppColors.textTertiary,
+                      color: context.tokens.textTertiary,
                     ),
                   ],
                 ),
@@ -83,7 +83,7 @@ class ProfileScreen extends StatelessWidget {
             // ---- 健康标签（内容个性化；空态给添加引导） ----
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text('健康标签', style: AppTypography.subtitle),
                 ),
                 TextButton(
@@ -100,25 +100,25 @@ class ProfileScreen extends StatelessWidget {
                 child: Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: const BoxDecoration(
-                    color: AppColors.surface,
+                  decoration: BoxDecoration(
+                    color: context.tokens.surface,
                     borderRadius: BorderRadius.all(
                       Radius.circular(AppRadius.lg),
                     ),
                   ),
                   child: Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.add_circle_outline,
                         size: 16,
-                        color: AppColors.primary,
+                        color: context.tokens.primaryText,
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Text(
                           '选择健康标签，提醒会更懂你',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.tokens.textSecondary,
                           ),
                         ),
                       ),
@@ -137,8 +137,8 @@ class ProfileScreen extends StatelessWidget {
                         horizontal: AppSpacing.md,
                         vertical: AppSpacing.xs + 2,
                       ),
-                      decoration: const BoxDecoration(
-                        color: AppColors.primarySurface,
+                      decoration: BoxDecoration(
+                        color: context.tokens.primarySurface,
                         borderRadius: BorderRadius.all(
                           Radius.circular(AppRadius.pill),
                         ),
@@ -146,7 +146,7 @@ class ProfileScreen extends StatelessWidget {
                       child: Text(
                         tag,
                         style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.primary,
+                          color: context.tokens.primaryText,
                         ),
                       ),
                     ),
@@ -156,7 +156,7 @@ class ProfileScreen extends StatelessWidget {
               Text(
                 '修改后下次提醒生效',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.tokens.textSecondary,
                 ),
               ),
             ],

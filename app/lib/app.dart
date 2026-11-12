@@ -44,6 +44,9 @@ class _HealthAssistantAppState extends State<HealthAssistantApp> {
     return MaterialApp(
       title: '健康助手',
       theme: AppTheme.light(),
+      darkTheme: AppTheme.dark(),
+      // 暗色随系统（2026-11-12 audit P2：此前系统夜间模式被无视）。
+      themeMode: ThemeMode.system,
       home: MainShell(onFirstLaunch: _runFirstLaunchFlow),
     );
   }

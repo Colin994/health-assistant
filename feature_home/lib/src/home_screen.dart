@@ -30,16 +30,16 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(title: const Text('今日')),
+      backgroundColor: context.tokens.background,
+      appBar: AppBar(title: Text('今日')),
       floatingActionButton: onQuickStretch == null
           ? null
           : FloatingActionButton(
               tooltip: '快速拉伸（开发入口）',
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.onPrimary,
+              backgroundColor: context.tokens.primaryText,
+              foregroundColor: context.tokens.onPrimary,
               onPressed: onQuickStretch,
-              child: const Icon(Icons.accessibility_new),
+              child: Icon(Icons.accessibility_new),
             ),
       body: SafeArea(
         child: ListView(
@@ -92,8 +92,8 @@ class HomeScreen extends StatelessWidget {
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm + 2,
                 ),
-                decoration: const BoxDecoration(
-                  color: AppColors.surface,
+                decoration: BoxDecoration(
+                  color: context.tokens.surface,
                   borderRadius:
                       BorderRadius.all(Radius.circular(AppRadius.lg)),
                 ),
@@ -101,7 +101,7 @@ class HomeScreen extends StatelessWidget {
                   children: [
                     for (var i = 0; i < state.nextReminders.length; i++) ...[
                       if (i > 0)
-                        const Divider(height: 1, color: AppColors.background),
+                        Divider(height: 1, color: context.tokens.background),
                       _NextReminderRow(item: state.nextReminders[i]),
                     ],
                   ],
@@ -137,8 +137,8 @@ class _StepsTodayCard extends StatelessWidget {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
       ),
       child: Column(
@@ -151,14 +151,14 @@ class _StepsTodayCard extends StatelessWidget {
               Text(
                 steps == null ? '—' : '$steps',
                 style: AppTypography.display.copyWith(
-                  color: AppColors.textPrimary,
+                  color: context.tokens.textPrimary,
                 ),
               ),
               const SizedBox(width: AppSpacing.xs),
               Text(
                 '步 · 今日',
                 style: AppTypography.caption.copyWith(
-                  color: AppColors.textSecondary,
+                  color: context.tokens.textSecondary,
                 ),
               ),
             ],
@@ -171,7 +171,7 @@ class _StepsTodayCard extends StatelessWidget {
                 ? '当日跨启动累计（基线本地续计；平台无硬件计步累计，'
                     '息屏/后台期间不计）'
                 : '今日累计 · 应用运行期间记录',
-            style: AppTypography.micro.copyWith(color: AppColors.textTertiary),
+            style: AppTypography.micro.copyWith(color: context.tokens.textTertiary),
           ),
         ],
       ),
@@ -202,26 +202,27 @@ class _CountdownChipsRow extends StatelessWidget {
             child: Opacity(
               opacity: chip.dimmed ? 0.55 : 1,
               child: Container(
+                // 垂直 padding 16 + 16px 内容行 = 48dp 触摸目标（Material 底线）。
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xs + 2,
+                  vertical: AppSpacing.md,
                 ),
-                decoration: const BoxDecoration(
-                  color: AppColors.primarySurface,
+                decoration: BoxDecoration(
+                  color: context.tokens.primarySurface,
                   borderRadius:
                       BorderRadius.all(Radius.circular(AppRadius.pill)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(_iconOf(chip.kind), size: 14, color: AppColors.primary),
+                    Icon(_iconOf(chip.kind), size: 14, color: context.tokens.primaryText),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
                       chip.sub == null
                           ? chip.label
                           : '${chip.label} · ${chip.sub}',
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.primary,
+                        color: context.tokens.primaryText,
                       ),
                     ),
                   ],
@@ -251,20 +252,20 @@ class _DeEscalationBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.tokens.surface,
         borderRadius: const BorderRadius.all(Radius.circular(AppRadius.lg)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.tune, size: 16, color: AppColors.textSecondary),
+          Icon(Icons.tune, size: 16, color: context.tokens.textSecondary),
           const SizedBox(width: AppSpacing.sm),
-          const Expanded(
+          Expanded(
             child: Text(
               '最近「别提醒」有点多，已自动放宽提醒节奏，少打扰你',
               style: AppTypography.caption,
             ),
           ),
-          TextButton(onPressed: onAcknowledge, child: const Text('知道了')),
+          TextButton(onPressed: onAcknowledge, child: Text('知道了')),
         ],
       ),
     );
@@ -281,23 +282,23 @@ class _SourceStatusRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Icon(
+        Icon(
           Icons.directions_walk,
           size: 16,
-          color: AppColors.primary,
+          color: context.tokens.primaryText,
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(
             label,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: context.tokens.textSecondary,
             ),
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.refresh, size: 18),
-          color: AppColors.textSecondary,
+          icon: Icon(Icons.refresh, size: 18),
+          color: context.tokens.textSecondary,
           tooltip: '刷新',
           onPressed: onRefresh,
         ),
@@ -320,9 +321,12 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
+      ),
+      decoration: BoxDecoration(
+        color: context.tokens.surface,
         borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
       ),
       child: Column(
@@ -343,7 +347,7 @@ class _StatCard extends StatelessWidget {
           Text(
             countLabel,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: context.tokens.textSecondary,
             ),
           ),
         ],
@@ -365,14 +369,14 @@ class _NextReminderRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm + 2),
       child: Row(
         children: [
-          Icon(_iconOf(item.kind), size: 16, color: AppColors.primary),
+          Icon(_iconOf(item.kind), size: 16, color: context.tokens.primaryText),
           const SizedBox(width: AppSpacing.sm),
           Text(item.label, style: AppTypography.bodyMedium),
-          const Spacer(),
+          Spacer(),
           Text(
             item.timeText,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: context.tokens.textSecondary,
             ),
           ),
         ],
@@ -409,7 +413,7 @@ class _RecordRow extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, size: 16, color: AppColors.primary),
+          Icon(Icons.check_circle, size: 16, color: context.tokens.primaryText),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -420,7 +424,7 @@ class _RecordRow extends StatelessWidget {
           Text(
             record.statusLabel,
             style: AppTypography.caption.copyWith(
-              color: AppColors.textSecondary,
+              color: context.tokens.textSecondary,
             ),
           ),
         ],

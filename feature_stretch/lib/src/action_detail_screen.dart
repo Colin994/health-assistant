@@ -38,7 +38,7 @@ class ActionDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final finished = remainingSeconds == 0;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.tokens.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -46,8 +46,8 @@ class ActionDetailScreen extends StatelessWidget {
             Row(
               children: [
                 IconButton(
-                  icon: const Icon(Icons.chevron_left),
-                  color: AppColors.textPrimary,
+                  icon: Icon(Icons.chevron_left),
+                  color: context.tokens.textPrimary,
                   onPressed: onBackPressed,
                 ),
               ],
@@ -68,8 +68,8 @@ class ActionDetailScreen extends StatelessWidget {
                           horizontal: AppSpacing.md,
                           vertical: AppSpacing.xs,
                         ),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primarySurface,
+                        decoration: BoxDecoration(
+                          color: context.tokens.primarySurface,
                           borderRadius: BorderRadius.all(
                             Radius.circular(AppRadius.pill),
                           ),
@@ -77,7 +77,7 @@ class ActionDetailScreen extends StatelessWidget {
                         child: Text(
                           action.durationLabel.split(' · ').first,
                           style: AppTypography.captionMedium.copyWith(
-                            color: AppColors.primary,
+                            color: context.tokens.primaryText,
                           ),
                         ),
                       ),
@@ -86,8 +86,8 @@ class ActionDetailScreen extends StatelessWidget {
                   const SizedBox(height: AppSpacing.lg),
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: const BoxDecoration(
-                      color: AppColors.surface,
+                    decoration: BoxDecoration(
+                      color: context.tokens.surface,
                       borderRadius: BorderRadius.all(
                         Radius.circular(AppRadius.lg),
                       ),
@@ -100,7 +100,7 @@ class ActionDetailScreen extends StatelessWidget {
                         Text(
                           '轻微拉伸即可，不要用力下压。',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.danger,
+                            color: context.tokens.danger,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
@@ -108,14 +108,14 @@ class ActionDetailScreen extends StatelessWidget {
                           '缓慢将头侧向右肩，感到左侧颈部被轻轻拉住，'
                           '在末端保持数秒后回正，再换另一侧。',
                           style: AppTypography.body.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.tokens.textSecondary,
                           ),
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           '× 每侧 2 次',
                           style: AppTypography.captionMedium.copyWith(
-                            color: AppColors.textPrimary,
+                            color: context.tokens.textPrimary,
                           ),
                         ),
                       ],
@@ -136,14 +136,14 @@ class ActionDetailScreen extends StatelessWidget {
                                     ? null
                                     : 1,
                                 strokeWidth: 6,
-                                color: AppColors.primarySurface,
+                                color: context.tokens.primarySurface,
                               ),
                               Center(
                                 child: Text(
                                   _timeLabel,
                                   style: AppTypography.display.copyWith(
                                     fontSize: 32,
-                                    color: AppColors.textPrimary,
+                                    color: context.tokens.textPrimary,
                                   ),
                                 ),
                               ),
@@ -154,7 +154,7 @@ class ActionDetailScreen extends StatelessWidget {
                         Text(
                           '剩余时间',
                           style: AppTypography.caption.copyWith(
-                            color: AppColors.textSecondary,
+                            color: context.tokens.textSecondary,
                           ),
                         ),
                       ],
@@ -172,8 +172,8 @@ class ActionDetailScreen extends StatelessWidget {
                 children: [
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
+                      backgroundColor: context.tokens.primaryText,
+                      foregroundColor: context.tokens.onPrimary,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(AppRadius.pill),
@@ -194,7 +194,7 @@ class ActionDetailScreen extends StatelessWidget {
                     child: Text(
                       '不做了，返回 ›',
                       style: AppTypography.captionMedium.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.tokens.textSecondary,
                       ),
                     ),
                   ),

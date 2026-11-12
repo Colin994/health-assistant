@@ -24,7 +24,7 @@ class StretchScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: context.tokens.background,
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -32,8 +32,8 @@ class StretchScreen extends StatelessWidget {
             Align(
               alignment: Alignment.centerLeft,
               child: IconButton(
-                icon: const Icon(Icons.close),
-                color: AppColors.textPrimary,
+                icon: Icon(Icons.close),
+                color: context.tokens.textPrimary,
                 onPressed: () => onIntent(const ClosePressed()),
               ),
             ),
@@ -48,14 +48,14 @@ class StretchScreen extends StatelessWidget {
                   Text(
                     state.subCopy,
                     style: AppTypography.body.copyWith(
-                      color: AppColors.textSecondary,
+                      color: context.tokens.textSecondary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     state.sourceLabel,
                     style: AppTypography.caption.copyWith(
-                      color: AppColors.textTertiary,
+                      color: context.tokens.textTertiary,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
@@ -72,7 +72,7 @@ class StretchScreen extends StatelessWidget {
                         child: Text(
                           '跳过这个 ›',
                           style: AppTypography.captionMedium.copyWith(
-                            color: AppColors.primary,
+                            color: context.tokens.primaryText,
                           ),
                         ),
                       ),
@@ -97,8 +97,8 @@ class StretchScreen extends StatelessWidget {
                 children: [
                   FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: AppColors.onPrimary,
+                      backgroundColor: context.tokens.primaryText,
+                      foregroundColor: context.tokens.onPrimary,
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(
                           Radius.circular(AppRadius.pill),
@@ -110,7 +110,7 @@ class StretchScreen extends StatelessWidget {
                     ),
                     onPressed: () =>
                         onIntent(const FeedbackSelected(StretchFeedback.done)),
-                    child: const Text('✓ 做完了', style: AppTypography.subtitle),
+                    child: Text('✓ 做完了', style: AppTypography.subtitle),
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   Row(
@@ -168,8 +168,8 @@ class _ActionCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: const BoxDecoration(
-            color: AppColors.surface,
+          decoration: BoxDecoration(
+            color: context.tokens.surface,
             borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
           ),
           child: Row(
@@ -188,8 +188,8 @@ class _ActionCard extends StatelessWidget {
                               horizontal: AppSpacing.sm,
                               vertical: 2,
                             ),
-                            decoration: const BoxDecoration(
-                              color: AppColors.primarySurface,
+                            decoration: BoxDecoration(
+                              color: context.tokens.primarySurface,
                               borderRadius: BorderRadius.all(
                                 Radius.circular(AppRadius.pill),
                               ),
@@ -197,7 +197,7 @@ class _ActionCard extends StatelessWidget {
                             child: Text(
                               '推荐',
                               style: AppTypography.microMedium.copyWith(
-                                color: AppColors.primary,
+                                color: context.tokens.primaryText,
                               ),
                             ),
                           ),
@@ -208,16 +208,16 @@ class _ActionCard extends StatelessWidget {
                     Text(
                       action.durationLabel,
                       style: AppTypography.caption.copyWith(
-                        color: AppColors.textSecondary,
+                        color: context.tokens.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
-              const Icon(
+              Icon(
                 Icons.chevron_right,
                 size: 20,
-                color: AppColors.textTertiary,
+                color: context.tokens.textTertiary,
               ),
             ],
           ),
@@ -242,8 +242,8 @@ class _SecondaryFeedbackButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        foregroundColor: AppColors.textPrimary,
-        side: const BorderSide(color: AppColors.textDisabled),
+        foregroundColor: context.tokens.textPrimary,
+        side: BorderSide(color: context.tokens.textDisabled),
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.pill)),
         ),
