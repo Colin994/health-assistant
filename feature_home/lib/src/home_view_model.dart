@@ -272,6 +272,12 @@ class HomeViewModel extends Notifier<HomeState> {
   Future<void> _loadGardenQuota() async {
     try {
       final store = GetIt.I<GameEconomyStore>();
+      // 必须先 load:store 未载入时 quotaRemaining 读的是空态(默认 3),
+      // 冷启/返回时会显示旧配额(花园内已扣减)。
+      await store.load();
+      if (!ref.mounted) {
+        return;
+      }
       final remaining = store.quotaRemaining(DateTime.now());
       state = state.copyWith(gardenQuotaRemaining: remaining);
     } catch (_) {
