@@ -1,7 +1,7 @@
 name: app
 description: 健康助手壳模块（入口、DI 配置聚合、路由表、通知深链分发）
 publish_to: none
-version: 1.0.0+1
+version: 1.1.0+2
 environment:
   sdk: ^3.12.0
 resolution: workspace
@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   base_utils:
     path: ../base_utils
+  core_database:
+    path: ../core_database
   core_health:
     path: ../core_health
   core_profile:
@@ -25,6 +27,8 @@ dependencies:
     path: ../domain_all
   feature_design_system:
     path: ../feature_design_system
+  feature_game:
+    path: ../feature_game
   feature_home:
     path: ../feature_home
   feature_onboarding:
@@ -52,3 +56,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/game/

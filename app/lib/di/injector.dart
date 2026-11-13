@@ -1,3 +1,4 @@
+import 'package:core_database/core_database.dart';
 import 'package:core_health/core_health.dart';
 import 'package:core_profile/core_profile.dart';
 import 'package:core_reminder/core_reminder.dart';
@@ -20,6 +21,7 @@ final GetIt getIt = GetIt.instance;
 /// 不依赖 UI 上下文。
 @InjectableInit(
   externalPackageModulesBefore: [
+    ExternalModule(CoreDatabasePackageModule),
     ExternalModule(CoreHealthPackageModule),
     ExternalModule(CoreProfilePackageModule),
     ExternalModule(CoreReminderPackageModule),
