@@ -489,7 +489,9 @@ class _IsoPlotView extends StatelessWidget {
             else ...[
               Positioned(
                 left: bedW / 2 - plantSize / 2,
-                top: bedH * 0.5 - plantSize * 0.80,
+                // sprite 底边钉在畦高 85% 处(bottomCenter 对齐与图片宽高比无关),
+                // 土丘基座(内容底 94%)稳定落在畦高 ~76%。
+                bottom: bedH * 0.15,
                 width: plantSize,
                 height: plantSize,
                 child: AnimatedSwitcher(
@@ -498,10 +500,12 @@ class _IsoPlotView extends StatelessWidget {
                     'assets/game/plant_iso_${plot!.species}_stage${plot!.stage}.png',
                     key: ValueKey('iso_${plot!.species}_${plot!.stage}'),
                     fit: BoxFit.contain,
+                    alignment: Alignment.bottomCenter,
                     // iso 植物图缺失时回退旧贴纸(过渡期容错)。
                     errorBuilder: (_, _, _) => Image.asset(
                       'assets/game/plant_${plot!.species}_stage${plot!.stage}.png',
                       fit: BoxFit.contain,
+                      alignment: Alignment.bottomCenter,
                     ),
                   ),
                 ),
