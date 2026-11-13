@@ -1043,6 +1043,9 @@ class _PlayArea extends StatelessWidget {
     final remaining = (total - elapsed).clamp(0, total);
     final canFinishEarly =
         catchSnap?.canFinishEarly ?? starSnap?.canFinishEarly ?? false;
+    // 结算遮罩期间隐藏底部动作按钮(避免透过遮罩露出)。
+    final showFinishEarly =
+        canFinishEarly && !paused && state.phase != GamePhase.result;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -1143,12 +1146,12 @@ class _PlayArea extends StatelessWidget {
           height: 64,
           child: Center(
             child: IgnorePointer(
-              ignoring: !canFinishEarly || paused,
+              ignoring: !showFinishEarly,
               child: AnimatedOpacity(
-                opacity: canFinishEarly && !paused ? 1 : 0,
+                opacity: showFinishEarly ? 1 : 0,
                 duration: const Duration(milliseconds: 200),
                 child: AnimatedScale(
-                  scale: canFinishEarly && !paused ? 1 : 0.85,
+                  scale: showFinishEarly ? 1 : 0.85,
                   duration: const Duration(milliseconds: 200),
                   child: FilledButton.icon(
                     onPressed: () => onIntent(const FinishEarlyPressed()),

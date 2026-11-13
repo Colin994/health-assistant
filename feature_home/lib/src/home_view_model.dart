@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:base_utils/base_utils.dart';
+import 'package:core_database/core_database.dart';
 import 'package:core_health/core_health.dart';
+
 import 'package:core_model/core_model.dart';
 import 'package:core_profile/core_profile.dart';
 import 'package:core_reminder/core_reminder.dart';
@@ -20,6 +22,9 @@ import 'home_state.dart';
 ///   reminder_log 计数流；
 /// - 渠道差异：L4 等开发字样仅 dev 渠道展示。
 class HomeViewModel extends Notifier<HomeState> {
+  /// 注入时钟（不读墙钟，活动打断窗口/当日计数可测）。
+  Clock get _clock => ref.read(homeClockProvider);
+
   StreamSubscription<int>? _stepsSub;
   StreamSubscription<EngineState>? _engineSub;
   StreamSubscription<({int fired, int done})>? _countsSub;
@@ -28,6 +33,8 @@ class HomeViewModel extends Notifier<HomeState> {
 
   @override
   HomeState build() {
+    // 花园剩余次数(异步加载;失败静默)。
+    Future.microtask(_loadGardenQuota);
     ref.onDispose(() {
       _stepsSub?.cancel();
       _stepsSub = null;
@@ -40,16 +47,14 @@ class HomeViewModel extends Notifier<HomeState> {
       // 「无挂起 Timer」约束。
       try {
         _engine?.stop();
-      } catch (_) {
-        // 引擎不可用/已停止：忽略。
+      } catch (error) {
+        // 引擎不可用/已停止：忽略（销毁路径，预期内）。
+        AppLogger.error('引擎停止跳过（销毁路径，预期内）', tag: 'home', error: error);
       }
     });
     _connectStepCollector();
     _connectReminderEngine();
-    return HomeState(
-      dataSourceLabel:
-          isDevBuild ? '正在连接数据源（L4）…' : '正在获取今日步数…',
-    );
+    return HomeState(dataSourceLabel: '正在获取今日步数…');
   }
 
   /// 接入 L4 采集器：先订阅（避免错过启动时的基线推送）再启动。
@@ -57,12 +62,15 @@ class HomeViewModel extends Notifier<HomeState> {
     final collector = GetIt.I<StepSessionCollector>();
     _stepsSub = collector.todaySteps.listen(
       (steps) {
+        // 单一 handler 同时驱动步数卡展示与活动打断：对同一订阅二次 onData
+        // 会覆盖先注册的 handler（Dart 语义），展示与打断只能择一存活。
+        _onStepTick();
         if (!ref.mounted) return;
         if (state.todaySteps != steps ||
             !state.dataSourceLabel.contains('更新中')) {
           state = state.copyWith(
             todaySteps: steps,
-            dataSourceLabel: _sourceLabel(collector),
+            dataSourceLabel: '今日步数 · 实时更新中',
           );
         }
       },
@@ -71,13 +79,7 @@ class HomeViewModel extends Notifier<HomeState> {
         final permDenied =
             error is PlatformException && error.code == 'PERMISSION_DENIED';
         state = state.copyWith(
-          dataSourceLabel: permDenied
-              ? (isDevBuild
-                  ? '数据源异常：缺身体活动权限（点右侧刷新申请）'
-                  : '步数权限未开启，点击右侧开启')
-              : (isDevBuild
-                  ? '数据源异常，下拉重试（$error）'
-                  : '步数暂不可用，点击重试'),
+          dataSourceLabel: permDenied ? '步数权限未开启' : '步数暂不可用，点击重试',
         );
         // 应用内自愈（W2）：首次权限缺失自动申请一次，获批即重启采集。
         if (permDenied && !_permissionAutoRetried) {
@@ -91,21 +93,15 @@ class HomeViewModel extends Notifier<HomeState> {
     );
     await collector.start();
     await collector.refreshBaseline();
-    _watchActivityBursts();
   }
 
   /// 活动打断（验收 #3）：60 秒内 ≥10 步判定为走动 → 重置久坐倒计时。
+  /// todaySteps 每推一值即一个 Detector tick（≈1 步）；引擎 onActivityBurst
+  /// 幂等（仅久坐类重置），无需节流。
   final List<DateTime> _recentTicks = [];
-  void _watchActivityBursts() {
-    // StepSessionCollector.todaySteps 每推一值即一个 Detector tick（≈1 步）。
-    // 引擎 onActivityBurst 幂等（仅久坐类重置），无需节流。
-    _stepsSub?.onData((steps) {
-      _onStepTick();
-    });
-  }
 
   void _onStepTick() {
-    final now = DateTime.now();
+    final now = _clock.now();
     _recentTicks.add(now);
     _recentTicks.removeWhere((t) => now.difference(t) > const Duration(seconds: 60));
     if (_recentTicks.length >= 10) {
@@ -119,17 +115,32 @@ class HomeViewModel extends Notifier<HomeState> {
     final ReminderEngine engine;
     try {
       engine = GetIt.I<ReminderEngine>();
-    } catch (_) {
-      return; // DI 未就绪（理论不可达）：保持占位不影响其余模块。
+    } catch (error) {
+      // DI 未就绪（理论不可达）：保持占位不影响其余模块。
+      AppLogger.error('提醒引擎接入失败（DI 未就绪？）', tag: 'home', error: error);
+      return;
     }
     _engine = engine;
     if (!engine.isRunning) {
       await engine.start();
     }
-    _engineSub = engine.states.listen((s) => _applyEngineState(engine, s));
-    _applyEngineState(engine, engine.state);
+    _engineSub = engine.states.listen((s) {
+      if (!ref.mounted) {
+        return;
+      }
+      _applyEngineState(engine, s);
+    });
+    // 初始状态必须推迟到 build 结束后的微任务:build 内同步读写自身 state
+    // 会触发 Riverpod「Tried to read the state of an uninitialized provider」
+    // (engine 已在运行时 start() 无 await,该调用就会同步落到 build 中)。
+    final initial = engine.state;
+    unawaited(Future<void>.microtask(() {
+      if (ref.mounted) {
+        _applyEngineState(engine, initial);
+      }
+    }));
 
-    final now = DateTime.now();
+    final now = _clock.now();
     final dayStart = DateTime(now.year, now.month, now.day);
     _countsSub = GetIt.I<ReminderPersistence>()
         .watchDayCounts(dayStart)
@@ -143,9 +154,12 @@ class HomeViewModel extends Notifier<HomeState> {
     // provider 可能在异步间隙被重建（如时钟跳变触发的 rebuild）：
     // 未初始化窗口写 state 会抛「uninitialized provider」。
     if (!ref.mounted) return;
+    // provider 可能在异步间隙被重建:未初始化窗口写 state 会抛
+    //「uninitialized provider」(build 内同步调用也会走到这里)。
+    if (!ref.mounted) return;
     final chips = <ReminderChipView>[];
     final nexts = <NextReminderView>[];
-    final now = DateTime.now();
+    final now = _clock.now();
     for (final kind in ReminderKind.values) {
       final snap = s.kinds[kind];
       if (snap == null) continue;
@@ -226,20 +240,6 @@ class HomeViewModel extends Notifier<HomeState> {
     );
   }
 
-  /// 数据源状态行：dev 渠道标注 L4 技术口径与计程起点便于排查；
-  /// master 渠道只用用户可感知的产品文案。
-  String _sourceLabel(StepSessionCollector collector) {
-    if (!isDevBuild) {
-      return '今日步数 · 实时更新中';
-    }
-    final startedAt = collector.startedAt;
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final from =
-        '${twoDigits(startedAt?.hour ?? 0)}:${twoDigits(startedAt?.minute ?? 0)}';
-    if (startedAt == null) return '传感器直读（L4）· 实时计步中';
-    return '传感器直读（L4）· $from 起实时计步';
-  }
-
   static String _kindLabel(ReminderKind kind) => switch (kind) {
         ReminderKind.sedentary => '久坐',
         ReminderKind.water => '喝水',
@@ -268,6 +268,17 @@ class HomeViewModel extends Notifier<HomeState> {
   }
 
   /// 统一的 Intent 入口（Screen 经 onIntent 回调转发至此）。
+  /// 读花园今日剩余练习次数(慢植物;失败静默,提示行保持隐藏)。
+  Future<void> _loadGardenQuota() async {
+    try {
+      final store = GetIt.I<GameEconomyStore>();
+      final remaining = store.quotaRemaining(DateTime.now());
+      state = state.copyWith(gardenQuotaRemaining: remaining);
+    } catch (_) {
+      // 经济数据不可用时不展示该行。
+    }
+  }
+
   Future<void> handleIntent(HomeIntent intent) async {
     switch (intent) {
       case RefreshPressed():
@@ -281,11 +292,13 @@ class HomeViewModel extends Notifier<HomeState> {
           }
         }
         await collector.refreshBaseline();
+      case GardenQuotaRefreshRequested():
+        await _loadGardenQuota();
       case DeEscalationAcknowledged():
         if (!ref.mounted) return;
         final engine = _engine;
         if (engine == null) return;
-        final now = DateTime.now();
+        final now = _clock.now();
         final repo = GetIt.I<ReminderConfigRepository>();
         final config =
             (await repo.load()).copyWith(deEscalationAckDay: _dayKey(now));
@@ -299,3 +312,6 @@ class HomeViewModel extends Notifier<HomeState> {
 /// 今日页状态容器（常驻 Tab：IndexedStack 持续挂载，状态保活）。
 final homeViewModelProvider =
     NotifierProvider<HomeViewModel, HomeState>(HomeViewModel.new);
+
+/// 注入时钟（测试 override 假时钟驱动打断窗口/跨日场景）。
+final homeClockProvider = Provider<Clock>((ref) => const SystemClock());
