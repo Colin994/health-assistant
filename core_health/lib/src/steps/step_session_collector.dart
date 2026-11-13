@@ -22,7 +22,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Pro 期手表连接上线后，基线可升级为健康中枢读回（吸收穿戴设备写入）。
 @LazySingleton()
 class StepSessionCollector {
-  StepSessionCollector();
+  StepSessionCollector({Clock? clock}) : _clock = clock ?? const SystemClock();
+
+  /// 注入时钟：跨日清零判定可测（测试注入假时钟，不读墙钟）。
+  final Clock _clock;
 
   static const EventChannel _channel = EventChannel('steps/session');
   static const MethodChannel _permissionChannel =
@@ -68,8 +71,8 @@ class StepSessionCollector {
   Future<void> start() async {
     if (_running) return;
     _running = true;
-    _startedAt = DateTime.now();
-    _dayKey = _dayKeyOf(DateTime.now());
+    _startedAt = _clock.now();
+    _dayKey = _dayKeyOf(_clock.now());
     await _restoreBaseline(emit: false);
     if (!_running) return; // await 期间可能已被 stop
     _emit();
@@ -93,7 +96,7 @@ class StepSessionCollector {
   Future<void> _restoreBaseline({required bool emit}) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final today = _dayKeyOf(DateTime.now());
+      final today = _dayKeyOf(_clock.now());
       if (prefs.getString(_prefsKey) == today) {
         _persistedToday = prefs.getInt(_prefsKey) ?? 0;
       } else {
@@ -109,7 +112,7 @@ class StepSessionCollector {
   }
 
   void _onTick() {
-    final today = _dayKeyOf(DateTime.now());
+    final today = _dayKeyOf(_clock.now());
     if (today != _dayKey) {
       // 跨日边界：累计与缓冲归零，当天从本 tick 重新起算。
       _dayKey = today;
@@ -118,7 +121,7 @@ class StepSessionCollector {
       _buffer = 0;
       _bufferStart = null;
     }
-    _bufferStart ??= DateTime.now();
+    _bufferStart ??= _clock.now();
     _liveTicks++;
     _buffer++;
     _emit();
@@ -139,7 +142,7 @@ class StepSessionCollector {
     _bufferStart = null;
     if (count <= 0 || start == null) return;
     _persistedToday += count;
-    final end = DateTime.now();
+    final end = _clock.now();
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_prefsKey, _dayKey);
@@ -177,7 +180,9 @@ class StepSessionCollector {
   Future<bool> ensurePermission() async {
     try {
       return await _permissionChannel.invokeMethod<bool>('request') ?? false;
-    } catch (_) {
+    } catch (error) {
+      // 申请失败按未授权处理；记录便于真机排查（如插件不可用）。
+      AppLogger.error('身体活动权限申请失败', tag: 'step_collector', error: error);
       return false;
     }
   }

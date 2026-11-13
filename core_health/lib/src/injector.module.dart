@@ -9,6 +9,8 @@ import 'package:core_health/src/data/health_data_source.dart' as _i395;
 import 'package:core_health/src/data/health_data_source_impl.dart' as _i996;
 import 'package:core_health/src/health_repository.dart' as _i384;
 import 'package:core_health/src/health_repository_impl.dart' as _i773;
+import 'package:core_health/src/pose/camera_pose_source.dart' as _i563;
+import 'package:core_health/src/pose/pose_stream.dart' as _i510;
 import 'package:core_health/src/steps/step_session_collector.dart' as _i303;
 import 'package:injectable/injectable.dart' as _i526;
 
@@ -18,6 +20,7 @@ class CoreHealthPackageModule extends _i526.MicroPackageModule {
   _i687.FutureOr<void> init(_i526.GetItHelper gh) {
     gh.lazySingleton<_i303.StepSessionCollector>(
         () => _i303.StepSessionCollector());
+    gh.lazySingleton<_i510.PoseStream>(() => _i563.CameraPoseSource());
     gh.lazySingleton<_i395.HealthDataSource>(
         () => _i996.HealthDataSourceImpl());
     gh.lazySingleton<_i384.HealthRepository>(
