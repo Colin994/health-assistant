@@ -16,6 +16,7 @@ workspace:
   - core_reminder
   - domain_all
   - feature_design_system
+  - feature_game
   - feature_home
   - feature_onboarding
   - feature_profile

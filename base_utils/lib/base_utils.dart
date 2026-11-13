@@ -1,8 +1,9 @@
 /// base_utils：全局通用工具模块。
 ///
-/// 仅存放与业务、UI 无关的工具代码；当前提供日志工具与构建渠道判定，
-/// W2 起补充时区与工作时段判定工具。
+/// 仅存放与业务、UI 无关的工具代码；当前提供日志工具、构建渠道判定
+/// 与注入式时钟抽象，W2 起补充时区与工作时段判定工具。
 library;
 
 export 'src/build_env.dart';
+export 'src/clock.dart';
 export 'src/logger/app_logger.dart';

@@ -1,5 +1,5 @@
 name: core_database
-description: 数据库支撑模块（W2 持久化以 Prefs JSON 落在 core_reminder；本模块保留给 Pro 期关系型需求）
+description: 数据库支撑模块（游戏经济持久化；W2 决策：Prefs JSON 替代 drift）
 publish_to: none
 version: 0.1.0
 environment:
@@ -9,7 +9,14 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  get_it: ^9.2.1
+  injectable: ^3.0.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   base_lints:
     path: ../base_lints
+  build_runner: ^2.15.1
+  flutter_test:
+    sdk: flutter
+  injectable_generator: ^3.1.3
