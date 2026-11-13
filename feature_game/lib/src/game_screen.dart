@@ -853,7 +853,8 @@ class _ShopSheet extends StatelessWidget {
             ),
           ),
           SizedBox(
-            height: 150,
+            // 图 72 + 名称/价格两行 ≈ 162,150 会溢出 10px(黄黑警告条)。
+            height: 170,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.all(12),
