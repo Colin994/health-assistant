@@ -57,3 +57,27 @@ design/pixso_image.b64
 # design/ 本地开发工具（MCP 调用器含 localhost URL，Mimosa 标记 SSRF；2026-11-11 审计）
 design/*.py
 design/*.js
+
+# 会话 hook 状态（Mimosa）
+.mimosa/
+
+# 走查/审计截图（仅本地留档）
+design/audit_shots/
+design/walk_m0m2/
+
+# 游戏美术过程区与旧版母版（正式 iso 资产与 tools 已入库；1024 旧母版仅本地保留）
+design/game_art/ai_samples/
+design/game_art/plants/
+design/game_art/plants_512/
+design/game_art/scenes/
+design/game_art/scenes_512/
+design/game_art/decor/
+design/game_art/decor_512/
+design/game_art/album/
+design/game_art/album_512/
+design/game_art/props/
+design/game_art/guides/
+
+# 通用缓存与临时提示词
+__pycache__/
+design/game_art/tools/_*.txt
