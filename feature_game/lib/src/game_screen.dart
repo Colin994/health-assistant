@@ -130,6 +130,25 @@ class _GameRoundButtonState extends State<GameRoundButton> {
 
 const _stageNames = ['发芽', '幼苗', '成长', '花苞', '盛开', '待收'];
 
+/// iso 场景开关(true=位图背景+花畦锚点,false=扁平 painter+网格,降级回退用)。
+const bool _useIsoScene = true;
+
+/// 四花畦归一化锚点(图内坐标,edit_iso B 锚点实测;顺序=plots[0..3])。
+const _isoBedSpecs = [
+  _IsoBedSpec(Offset(0.525, 0.495), Size(0.32, 0.095)), // 后
+  _IsoBedSpec(Offset(0.29, 0.58), Size(0.32, 0.095)), // 左
+  _IsoBedSpec(Offset(0.745, 0.575), Size(0.32, 0.095)), // 右
+  _IsoBedSpec(Offset(0.505, 0.64), Size(0.32, 0.095)), // 前
+];
+
+/// 单块花畦锚点规格(图内归一化中心+宽高)。
+class _IsoBedSpec {
+  const _IsoBedSpec(this.center, this.size);
+
+  final Offset center;
+  final Size size;
+}
+
 // ============ 花园 ============
 
 class _GardenView extends StatelessWidget {
@@ -148,6 +167,7 @@ class _GardenView extends StatelessWidget {
     final busy =
         state.phase == GamePhase.countdown ||
         state.phase == GamePhase.calibrating;
+    final showPlots = !busy && state.phase != GamePhase.error;
     final heading = switch (state.phase) {
       GamePhase.countdown => '${state.countdownSeconds}',
       GamePhase.calibrating => '校准中',
@@ -157,8 +177,14 @@ class _GardenView extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // 程序化矢量场景背景(同构图,随本地时钟四时段变化)。
-        GardenScene(timeOfDay: timeOfDay),
+        // iso 场景位图背景(edit_iso B 锚点四时段);扁平 painter 留作降级。
+        if (_useIsoScene)
+          GardenIsoBackdrop(timeOfDay: timeOfDay)
+        else
+          GardenScene(timeOfDay: timeOfDay),
+        // 花畦锚点地块层(全屏坐标,与 backdrop cover 映射一致)。
+        if (showPlots)
+          _IsoPlotsLayer(plots: state.plots, onTap: _onPlotTapped),
         _DecorationsLayer(owned: state.decorations),
         SafeArea(
           child: busy || state.phase == GamePhase.error
@@ -219,20 +245,9 @@ class _GardenView extends StatelessWidget {
                       ),
                     ),
                     Expanded(
-                      child: GridView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 2,
-                              mainAxisSpacing: 10,
-                            ),
-                        itemCount: state.plots.length,
-                        itemBuilder: (context, index) => _PlotTile(
-                          plot: state.plots[index],
-                          onTap: () => _onPlotTapped(context, index),
-                        ),
-                      ),
+                      // 地块已落位到 iso 场景花畦(见 _IsoPlotsLayer),
+                      // 此处仅占位把按钮区压到底部。
+                      child: const SizedBox.shrink(),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(10),
@@ -364,6 +379,129 @@ class _GardenView extends StatelessWidget {
   }
 }
 
+/// 花畦锚点地块层:全屏 Stack,按 [GardenIsoMetrics] 把 plots[0..3]
+/// 落位到场景四块白框花畦上;点击回调复用原有 seed/plant sheet 流程。
+class _IsoPlotsLayer extends StatelessWidget {
+  const _IsoPlotsLayer({required this.plots, required this.onTap});
+
+  final List<PlotState?> plots;
+
+  final void Function(BuildContext, int) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final metrics = GardenIsoMetrics(
+            screenSize: Size(constraints.maxWidth, constraints.maxHeight),
+          );
+          return Stack(
+            children: [
+              for (var i = 0; i < plots.length; i++)
+                Positioned.fromRect(
+                  rect: metrics.rect(
+                    _isoBedSpecs[i].center,
+                    _isoBedSpecs[i].size,
+                  ),
+                  child: _IsoPlotView(
+                    plot: plots[i],
+                    onTap: () => onTap(context, i),
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// 单块花畦上的地块视图:空地=半透明白框提示;有植物=位图落畦 +
+/// 底部细进度条 + 收获角标;整体响应点击(触控区=花畦矩形)。
+class _IsoPlotView extends StatelessWidget {
+  const _IsoPlotView({required this.plot, required this.onTap});
+
+  final PlotState? plot;
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (plot == null) {
+      return GestureDetector(
+        onTap: onTap,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.add_circle_outline,
+                  size: 22,
+                  color: Colors.white.withValues(alpha: 0.85),
+                ),
+                Text(
+                  '种花',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.9),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    final stage = plot!.stage;
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Stack(
+        children: [
+          Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 350),
+              child: Image.asset(
+                'assets/game/plant_iso_${plot!.species}_stage$stage.png',
+                key: ValueKey('iso_${plot!.species}_$stage'),
+                fit: BoxFit.contain,
+                // iso 植物图缺失时回退旧贴纸(过渡期容错)。
+                errorBuilder: (_, _, _) => Image.asset(
+                  'assets/game/plant_${plot!.species}_stage$stage.png',
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 8,
+            right: 8,
+            bottom: 2,
+            child: LinearProgressIndicator(
+              value: plot!.progressToNext,
+              minHeight: 4,
+              borderRadius: BorderRadius.circular(3),
+              backgroundColor: Colors.white.withValues(alpha: 0.4),
+            ),
+          ),
+          if (plot!.harvestable)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: Text('🌸 收', style: theme.textTheme.bodySmall),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 /// 押花册弹层:网格显示已收集物种与数量。
 class _HerbariumSheet extends StatelessWidget {
   const _HerbariumSheet({required this.counts});
@@ -481,97 +619,21 @@ class _BusyCard extends StatelessWidget {
   }
 }
 
-class _PlotTile extends StatelessWidget {
-  const _PlotTile({required this.plot, required this.onTap});
-
-  final PlotState? plot;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    if (plot == null) {
-      return Card(
-        color: context.tokens.primarySurfaceDim,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: InkWell(
-          onTap: onTap,
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  size: 30,
-                  color: context.tokens.textSecondary,
-                ),
-                Text('种花', style: theme.textTheme.bodySmall),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    final stage = plot!.stage;
-    return Card(
-      color: context.tokens.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        child: Stack(
-          children: [
-            Center(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                child: Image.asset(
-                  'assets/game/plant_${plot!.species}_stage$stage.png',
-                  key: ValueKey('${plot!.species}_$stage'),
-                  fit: BoxFit.contain,
-                ),
-              ),
-            ),
-            Positioned(
-              left: 8,
-              right: 8,
-              bottom: 6,
-              child: LinearProgressIndicator(
-                value: plot!.progressToNext,
-                minHeight: 5,
-                borderRadius: BorderRadius.circular(3),
-                backgroundColor: AppColors.primarySurfaceDim,
-              ),
-            ),
-            if (plot!.harvestable)
-              Positioned(
-                top: 6,
-                right: 8,
-                child: Text('🌸 收', style: theme.textTheme.bodySmall),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _DecorationsLayer extends StatelessWidget {
   const _DecorationsLayer({required this.owned});
 
   final List<String> owned;
 
   static const Map<String, Alignment> _align = {
-    'pavilion': Alignment(0.62, -0.88),
-    'fence': Alignment(-0.85, -0.6),
-    'hanging_pot': Alignment(0.85, -0.62),
-    'gnome': Alignment(-0.88, -0.05),
-    'path': Alignment(0.88, 0.0),
-    'lantern': Alignment(-0.86, 0.68),
-    'bench': Alignment(0.86, 0.7),
-    'wheelbarrow': Alignment(-0.42, 0.86),
+    // iso 场景锚点:贴平台四周草地与前景,避开中央花畦带(y≈0.49-0.62)。
+    'pavilion': Alignment(0.85, 0.30), // 右后丘陵
+    'fence': Alignment(-0.62, 0.88), // 左前草地(场景自带背景栅栏,此为近景段)
+    'hanging_pot': Alignment(0.10, 0.34), // 左侧树冠下
+    'gnome': Alignment(0.10, 0.66), // 左前草地
+    'path': Alignment(0.50, 0.84), // 前景平台前缘
+    'lantern': Alignment(0.87, 0.66), // 右前草地
+    'bench': Alignment(-0.85, 0.88), // 左下前景
+    'wheelbarrow': Alignment(0.84, 0.92), // 右下前景
   };
 
   @override
