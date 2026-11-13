@@ -12,3 +12,8 @@ final class RefreshPressed extends HomeIntent {
 final class DeEscalationAcknowledged extends HomeIntent {
   const DeEscalationAcknowledged();
 }
+
+/// 刷新花园剩余练习次数（从游戏页返回后由壳层触发）。
+final class GardenQuotaRefreshRequested extends HomeIntent {
+  const GardenQuotaRefreshRequested();
+}

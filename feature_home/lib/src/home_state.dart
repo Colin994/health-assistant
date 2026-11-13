@@ -13,6 +13,7 @@ class HomeState {
     this.nextReminders = const [],
     this.showDeEscalationBanner = false,
     this.records = const [],
+    this.gardenQuotaRemaining,
   });
 
   /// 数据源状态行（如「今日步数 · 实时更新中」）。
@@ -39,6 +40,9 @@ class HomeState {
   /// 今日提醒记录（时间倒序；W3 接反馈流水细化）。
   final List<HomeRecord> records;
 
+  /// 花园今日剩余练习次数(null = 未加载 → 提示行隐藏)。
+  final int? gardenQuotaRemaining;
+
   HomeState copyWith({
     String? dataSourceLabel,
     int? todaySteps,
@@ -48,6 +52,7 @@ class HomeState {
     List<NextReminderView>? nextReminders,
     bool? showDeEscalationBanner,
     List<HomeRecord>? records,
+    int? gardenQuotaRemaining,
   }) {
     return HomeState(
       dataSourceLabel: dataSourceLabel ?? this.dataSourceLabel,
@@ -59,6 +64,7 @@ class HomeState {
       showDeEscalationBanner:
           showDeEscalationBanner ?? this.showDeEscalationBanner,
       records: records ?? this.records,
+      gardenQuotaRemaining: gardenQuotaRemaining ?? this.gardenQuotaRemaining,
     );
   }
 }

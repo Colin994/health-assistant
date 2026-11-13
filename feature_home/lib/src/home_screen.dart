@@ -1,4 +1,3 @@
-import 'package:base_utils/base_utils.dart';
 import 'package:core_model/core_model.dart';
 import 'package:feature_design_system/feature_design_system.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +15,7 @@ class HomeScreen extends StatelessWidget {
     required this.onIntent,
     this.onQuickStretch,
     this.onOpenReminderSettings,
+    this.gardenRefreshTick = 0,
   });
 
   final HomeState state;
@@ -26,6 +26,10 @@ class HomeScreen extends StatelessWidget {
 
   /// 点击提醒 chips 跳「提醒设置」（交互文档 §4.1）。
   final VoidCallback? onOpenReminderSettings;
+
+  /// 花园刷新信号(递增):变化即请求重读剩余次数。
+  /// 常驻 IndexedStack 页不会自动重建，由壳层在游戏返回后递增。
+  final int gardenRefreshTick;
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +87,20 @@ class HomeScreen extends StatelessWidget {
                 ),
               ],
             ),
+            // 花园剩余次数(信息展示;入口在「我的」页)。
+            if (state.gardenQuotaRemaining != null)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: Text(
+                  state.gardenQuotaRemaining! > 0
+                      ? '☀️ 慢植物花园 · 今日还可获取阳光 '
+                          '${state.gardenQuotaRemaining} 次'
+                      : '☀️ 慢植物花园 · 今日阳光已获取完，明天再来',
+                  style: AppTypography.caption.copyWith(
+                    color: context.tokens.textSecondary,
+                  ),
+                ),
+              ),
             const SizedBox(height: AppSpacing.lg),
             if (state.nextReminders.isNotEmpty) ...[
               const _SectionTitle('下次提醒'),
@@ -165,12 +183,7 @@ class _StepsTodayCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            // dev 渠道保留采集边界的技术说明；master 只留一句可感知信息。
-            // 2026-11-09 起基线本地续计：当日步数跨启动累计（口径已更新）。
-            isDevBuild
-                ? '当日跨启动累计（基线本地续计；平台无硬件计步累计，'
-                    '息屏/后台期间不计）'
-                : '今日累计 · 应用运行期间记录',
+            '今日累计 · 应用运行期间记录',
             style: AppTypography.micro.copyWith(color: context.tokens.textTertiary),
           ),
         ],

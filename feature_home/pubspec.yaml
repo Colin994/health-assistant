@@ -11,6 +11,8 @@ dependencies:
     sdk: flutter
   base_utils:
     path: ../base_utils
+  core_database:
+    path: ../core_database
   core_health:
     path: ../core_health
   core_model:
