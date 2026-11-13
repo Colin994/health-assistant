@@ -15,12 +15,16 @@ class SettingsScreen extends StatelessWidget {
     super.key,
     required this.state,
     this.devEntries = const [],
+    this.onOpenPrivacy,
   });
 
   final SettingsState state;
 
   /// 开发者入口区条目（label + onTap），仅 debug 用途由壳注入。
   final List<(String, VoidCallback)> devEntries;
+
+  /// 隐私与数据说明页入口（壳注入，避免 feature 间依赖）。
+  final VoidCallback? onOpenPrivacy;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +51,7 @@ class SettingsScreen extends StatelessWidget {
             _SettingsRow(
               title: '隐私与数据说明',
               subtitle: '我们读取什么、存在哪',
-              onTap: () => {},
+              onTap: onOpenPrivacy,
             ),
             _SettingsRow(
               title: '关于',

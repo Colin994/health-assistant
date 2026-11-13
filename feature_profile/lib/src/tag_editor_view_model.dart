@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:base_utils/base_utils.dart';
 import 'package:core_profile/core_profile.dart';
 import 'package:core_reminder/core_reminder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,8 +60,9 @@ class TagEditorViewModel extends Notifier<TagEditorState> {
         await enableRemindersForTags(tags, repo);
         try {
           await GetIt.I<ReminderEngine>().onSettingsChanged();
-        } catch (_) {
+        } catch (error) {
           // 引擎未启动（理论不可达）：配置已落库，下次启动生效。
+          AppLogger.error('引擎重算失败（配置已落库）', tag: 'tag_editor', error: error);
         }
         _events.add(const TagEditorSaved());
     }

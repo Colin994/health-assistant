@@ -18,6 +18,7 @@ class ProfileScreen extends StatelessWidget {
     required this.onIntent,
     this.onReminderSettings,
     this.onEditTags,
+    this.onOpenGarden,
   });
 
   final ProfileState state;
@@ -28,6 +29,9 @@ class ProfileScreen extends StatelessWidget {
 
   /// 标签编辑入口（跳本模块标签编辑页）。
   final VoidCallback? onEditTags;
+
+  /// 慢植物花园入口（由 app 壳注入；2026-11 上线的唯一游戏入口）。
+  final VoidCallback? onOpenGarden;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +83,50 @@ class ProfileScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
+
+            // ---- 活动（行为域：慢植物花园；与「提醒」配置域并列） ----
+            if (onOpenGarden != null) ...[
+              Text('活动', style: AppTypography.subtitle),
+              const SizedBox(height: AppSpacing.sm),
+              InkWell(
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                onTap: onOpenGarden,
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: context.tokens.surface,
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(AppRadius.lg),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('慢植物花园', style: AppTypography.bodyMedium),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              '照顾植物 · 接阳光练颈椎',
+                              style: AppTypography.caption.copyWith(
+                                color: context.tokens.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.chevron_right,
+                        size: 20,
+                        color: context.tokens.textTertiary,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
 
             // ---- 健康标签（内容个性化；空态给添加引导） ----
             Row(

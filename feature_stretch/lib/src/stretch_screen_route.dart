@@ -14,12 +14,17 @@ import 'stretch_view_model.dart';
 /// 事件流订阅保持「initState 订阅 / dispose 取消」语义；VM 生命周期
 /// 交给 provider（页面 pop 后自动销毁并关闭事件流）。
 class StretchScreenRoute extends ConsumerStatefulWidget {
-  const StretchScreenRoute({super.key});
+  const StretchScreenRoute({super.key, this.onOpenGarden});
+
+  /// 慢植物花园入口(由 app 壳注入,避免 feature 间横向依赖)。
+  final VoidCallback? onOpenGarden;
 
   /// 跳转到拉伸页。
-  static Future<void> push(BuildContext context) {
+  static Future<void> push(BuildContext context, {VoidCallback? onOpenGarden}) {
     return Navigator.of(context).push<void>(
-      MaterialPageRoute<void>(builder: (_) => const StretchScreenRoute()),
+      MaterialPageRoute<void>(
+        builder: (_) => StretchScreenRoute(onOpenGarden: onOpenGarden),
+      ),
     );
   }
 
@@ -70,6 +75,7 @@ class _StretchScreenRouteState extends ConsumerState<StretchScreenRoute> {
       state: state,
       onIntent: viewModel.handleIntent,
       onActionTapped: ActionDetailScreenRoute.push,
+      onOpenGarden: widget.onOpenGarden,
     );
   }
 }

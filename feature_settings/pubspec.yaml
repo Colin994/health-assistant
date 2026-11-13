@@ -9,6 +9,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  base_utils:
+    path: ../base_utils
   feature_design_system:
     path: ../feature_design_system
   flutter_riverpod: ^3.0.0

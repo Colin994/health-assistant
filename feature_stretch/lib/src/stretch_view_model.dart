@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:base_utils/base_utils.dart';
 import 'package:core_model/core_model.dart';
 import 'package:domain_all/domain_all.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -73,8 +74,9 @@ class StretchViewModel extends Notifier<StretchState> {
         action: action,
         kind: ReminderKind.sedentary,
       );
-    } catch (_) {
+    } catch (error) {
       // 反馈落库失败不阻断退出（引擎仍按既有状态运行）。
+      AppLogger.error('反馈落库失败（引擎按既有状态运行）', tag: 'stretch', error: error);
     }
   }
 }

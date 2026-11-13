@@ -1,5 +1,10 @@
 # 全项目统一 lint 入口：各 package 的 analysis_options.yaml 通过
 # `include: package:base_lints/analysis_options.yaml` 引用本文件。
+#
+# 基线选型（显式决策，2026-11-12 审计 F5 记录）：flutter_lints +
+# strict-casts/inference/raw-types 三项 + 下方精选规则，而非
+# very_good_analysis——前者随 Flutter SDK 演进零维护成本，strict 三项
+# 已覆盖 VGA 最有价值的隐式转换防线；仅当需要其大量风格规则时再评估迁移。
 include: package:flutter_lints/flutter.yaml
 
 analyzer:

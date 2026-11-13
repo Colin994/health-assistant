@@ -1,3 +1,4 @@
+import 'package:base_utils/base_utils.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -18,8 +19,9 @@ class SettingsViewModel extends Notifier<SettingsState> {
       final info = await PackageInfo.fromPlatform();
       if (!ref.mounted) return;
       state = state.copyWith(version: info.version);
-    } catch (_) {
+    } catch (error) {
       // 读取失败保持默认 0.1.0。
+      AppLogger.error('版本信息读取失败（保持占位版本）', tag: 'settings', error: error);
     }
   }
 }

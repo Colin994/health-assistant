@@ -14,12 +14,16 @@ class StretchScreen extends StatelessWidget {
     required this.state,
     required this.onIntent,
     this.onActionTapped,
+    this.onOpenGarden,
   });
 
   final StretchState state;
   final ValueChanged<StretchIntent> onIntent;
   final void Function(BuildContext context, StretchAction action)?
       onActionTapped;
+
+  /// 慢植物花园入口(由 app 壳注入,feature_stretch 不依赖 feature_game)。
+  final VoidCallback? onOpenGarden;
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +116,15 @@ class StretchScreen extends StatelessWidget {
                         onIntent(const FeedbackSelected(StretchFeedback.done)),
                     child: Text('✓ 做完了', style: AppTypography.subtitle),
                   ),
+                  // 慢植物花园入口(2026-11 上线:拉伸的趣味替代,同层选项)。
+                  if (onOpenGarden != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    TextButton.icon(
+                      onPressed: onOpenGarden,
+                      icon: const Text('🌱'),
+                      label: const Text('或者去花园接阳光'),
+                    ),
+                  ],
                   const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [

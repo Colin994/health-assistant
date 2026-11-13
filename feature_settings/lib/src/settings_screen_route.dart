@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'privacy_screen.dart';
 import 'settings_screen.dart';
 import 'settings_view_model.dart';
 
@@ -23,6 +24,7 @@ class SettingsScreenRoute extends ConsumerWidget {
     return SettingsScreen(
       state: state,
       devEntries: devEntries,
+      onOpenPrivacy: () => PrivacyScreenRoute.push(context),
     );
   }
 }

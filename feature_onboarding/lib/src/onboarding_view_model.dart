@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:base_utils/base_utils.dart';
 import 'package:core_profile/core_profile.dart';
 import 'package:core_reminder/core_reminder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,8 +81,9 @@ class OnboardingViewModel extends Notifier<OnboardingState> {
       await store.save(tags);
       await enableRemindersForTags(tags, repo);
       await GetIt.I<ReminderEngine>().onSettingsChanged();
-    } catch (_) {
+    } catch (error) {
       // 落库失败不阻断引导完成（空标签走默认文案）。
+      AppLogger.error('引导标签落库失败（按空标签继续）', tag: 'onboarding', error: error);
     }
     _events.add(const OnboardingCompleted());
   }
@@ -89,7 +91,8 @@ class OnboardingViewModel extends Notifier<OnboardingState> {
   Future<bool> _requestNotificationPermission() async {
     try {
       return await GetIt.I<ReminderNotificationService>().requestPermission();
-    } catch (_) {
+    } catch (error) {
+      AppLogger.error('通知权限请求失败', tag: 'onboarding', error: error);
       return false;
     }
   }
