@@ -644,7 +644,7 @@ class _DecorationsLayer extends StatelessWidget {
           Align(
             alignment: _align[id] ?? const Alignment(0, 0),
             child: Image.asset(
-              'assets/game/deco_$id.png',
+              'assets/game/deco_iso_$id.png',
               width: id == 'pavilion' ? 88 : 60,
             ),
           ),
@@ -865,7 +865,7 @@ class _ShopSheet extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Image.asset(
-                          'assets/game/deco_${deco.id}.png',
+                          'assets/game/deco_iso_${deco.id}.png',
                           height: 72,
                           opacity: state.decorations.contains(deco.id)
                               ? const AlwaysStoppedAnimation(1)
