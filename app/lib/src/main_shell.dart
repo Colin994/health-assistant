@@ -68,6 +68,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                     ('发送测试提醒（通知链路自验）', _sendTestReminder),
                     ('花园立体风格 Demo', () => _pushGardenStyleDemo(context)),
                     ('花畦锚点校准', () => _pushBedCalibration(context)),
+                    ('接阳光 2.5D 预览', () => _pushCatchPreview(context)),
                   ]
                 : const [],
           ),
@@ -136,6 +137,15 @@ class _MainShellState extends ConsumerState<MainShell> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const GardenBedCalibrationScreen(),
+      ),
+    );
+  }
+
+  /// 接阳光 2.5D 预览(dev:合成 snapshot 驱动 Board,不接玩法逻辑)。
+  void _pushCatchPreview(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const CatchDropPreviewScreen(),
       ),
     );
   }

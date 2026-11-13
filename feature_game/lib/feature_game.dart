@@ -5,6 +5,7 @@
 library;
 
 export 'src/catch_drop/catch_drop_session.dart';
+export 'src/catch_drop/catch_drop_preview_screen.dart';
 export 'src/star_gazing/star_gazing_session.dart';
 export 'src/game_event.dart';
 export 'src/game_intent.dart';

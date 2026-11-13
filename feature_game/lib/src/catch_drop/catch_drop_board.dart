@@ -8,7 +8,7 @@ import 'catch_drop_session.dart';
 
 /// 接阳光棋盘(§6.1 v0.5,游戏化表现层)。
 ///
-/// 组合:CustomPaint(天空/云/倒计时/粒子/飘字/分数)
+/// 组合:位图背景(iso 花园天空)+CustomPaint(倒计时/光晕/粒子/飘字/HUD 分数)
 /// + 图像精灵(阳光/金阳光用 ComfyUI 生成的卡通图)
 /// + 篮子容器(接住时弹性缩放)。
 class CatchDropBoard extends StatefulWidget {
@@ -184,6 +184,14 @@ class _CatchDropBoardState extends State<CatchDropBoard>
             return Stack(
               clipBehavior: Clip.none,
               children: [
+                // 2.5D 玩法背景(iso 花园世界,上 70% 天空留白给掉落物)。
+                Positioned.fill(
+                  child: Image.asset(
+                    'assets/game/backdrop_catch.png',
+                    fit: BoxFit.cover,
+                    alignment: Alignment.bottomCenter,
+                  ),
+                ),
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _CatchDropPainter(
@@ -210,7 +218,7 @@ class _CatchDropBoardState extends State<CatchDropBoard>
                     scale: _bounce,
                     alignment: Alignment.bottomCenter,
                     child: Image.asset(
-                      'assets/game/basket.png',
+                      'assets/game/basket_iso.png',
                       fit: BoxFit.contain,
                     ),
                   ),
@@ -244,7 +252,7 @@ class _CatchDropBoardState extends State<CatchDropBoard>
       child: Transform.rotate(
         angle: math.sin(_now.inMilliseconds / 320.0 + drop.id) * 0.12,
         child: Image.asset(
-          golden ? 'assets/game/golden_sun.png' : 'assets/game/sun_sprite.png',
+          golden ? 'assets/game/golden_sun_iso.png' : 'assets/game/sun_iso.png',
           fit: BoxFit.contain,
         ),
       ),
@@ -369,21 +377,7 @@ class _CatchDropPainter extends CustomPainter {
     final w = size.width;
     final h = size.height;
 
-    // 天空竖向渐变。
-    canvas.drawRect(
-      Rect.fromLTWH(0, 0, w, h),
-      Paint()
-        ..shader = const LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFFFF9E5), Color(0xFFEFFBF7)],
-        ).createShader(Rect.fromLTWH(0, 0, w, h)),
-    );
-
-    // 云(缓慢漂移)。
-    final drift = (now.inMilliseconds ~/ 120) % 400 - 200;
-    _drawCloud(canvas, w * 0.22 + drift.toDouble(), h * 0.15, 1.0);
-    _drawCloud(canvas, w * 0.76 - drift.toDouble(), h * 0.25, 0.72);
+    // 背景(天空+云)由位图 backdrop_catch.png 承担,本 painter 只画动态元素。
 
     // 顶部倒计时条。
     final urgency = remainingSeconds <= 10;
@@ -498,36 +492,30 @@ class _CatchDropPainter extends CustomPainter {
       tp.paint(canvas, Offset(f.x * w - tp.width / 2, h - 120 - age * 70));
     }
 
-    // 分数。
+    // 分数:HUD 深色胶囊+白字(与花园 HUD 统一)。
     final scoreTp = TextPainter(
       text: TextSpan(
         text: '${snapshot.score}',
         style: const TextStyle(
-          fontSize: 34,
+          fontSize: 26,
           fontWeight: FontWeight.w800,
-          color: AppColors.textPrimary,
+          color: Colors.white,
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
-    scoreTp.paint(canvas, Offset(w - scoreTp.width - 20, 18));
-  }
-
-  void _drawCloud(Canvas canvas, double x, double y, double scale) {
-    final paint = Paint()..color = Colors.white.withValues(alpha: 0.75);
-    canvas.drawCircle(Offset(x, y), 22 * scale, paint);
-    canvas.drawCircle(Offset(x + 26 * scale, y + 4 * scale), 17 * scale, paint);
-    canvas.drawCircle(Offset(x - 24 * scale, y + 6 * scale), 15 * scale, paint);
+    final pillW = scoreTp.width + 30;
+    final pillRect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(w - pillW - 16, 14, pillW, 40),
+      const Radius.circular(20),
+    );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromCenter(
-          center: Offset(x, y + 10 * scale),
-          width: 78 * scale,
-          height: 20 * scale,
-        ),
-        Radius.circular(10 * scale),
-      ),
-      paint,
+      pillRect,
+      Paint()..color = Colors.black.withValues(alpha: 0.38),
+    );
+    scoreTp.paint(
+      canvas,
+      Offset(w - scoreTp.width - 16 - 15, 14 + (40 - scoreTp.height) / 2),
     );
   }
 
