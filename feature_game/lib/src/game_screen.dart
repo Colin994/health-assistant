@@ -130,12 +130,12 @@ const _stageNames = ['发芽', '幼苗', '成长', '花苞', '盛开', '待收']
 /// iso 场景开关(true=位图背景+花畦锚点,false=扁平 painter+网格,降级回退用)。
 const bool _useIsoScene = true;
 
-/// 四花畦归一化锚点(图内坐标,edit_iso B 锚点实测;顺序=plots[0..3])。
+/// 四花畦归一化锚点(程序化检测空畦白框 bbox;顺序=plots[0..3])。
 const _isoBedSpecs = [
-  _IsoBedSpec(Offset(0.525, 0.495), Size(0.32, 0.095)), // 后
-  _IsoBedSpec(Offset(0.29, 0.58), Size(0.32, 0.095)), // 左
-  _IsoBedSpec(Offset(0.745, 0.575), Size(0.32, 0.095)), // 右
-  _IsoBedSpec(Offset(0.505, 0.64), Size(0.32, 0.095)), // 前
+  _IsoBedSpec(Offset(0.494, 0.474), Size(0.254, 0.095)), // 后
+  _IsoBedSpec(Offset(0.289, 0.544), Size(0.297, 0.110)), // 左
+  _IsoBedSpec(Offset(0.744, 0.555), Size(0.293, 0.088)), // 右
+  _IsoBedSpec(Offset(0.516, 0.629), Size(0.297, 0.112)), // 前
 ];
 
 /// 单块花畦锚点规格(图内归一化中心+宽高)。

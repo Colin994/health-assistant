@@ -13,3 +13,4 @@ export 'src/game_screen_route.dart';
 export 'src/game_state.dart';
 export 'src/game_view_model.dart';
 export 'src/garden_style_demo_screen.dart';
+export 'src/garden_bed_calibration_screen.dart';

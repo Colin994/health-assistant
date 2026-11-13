@@ -1,6 +1,4 @@
 import 'package:base_utils/base_utils.dart';
-import 'package:core_profile/core_profile.dart';
-import 'package:core_reminder/core_reminder.dart';
 import 'package:feature_design_system/feature_design_system.dart';
 import 'package:feature_game/feature_game.dart';
 import 'package:feature_home/feature_home.dart';
@@ -9,7 +7,9 @@ import 'package:feature_profile/feature_profile.dart';
 import 'package:feature_settings/feature_settings.dart';
 import 'package:feature_stretch/feature_stretch.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'dev_tools_view_model.dart';
 
 /// 主导航壳：底部 Tab（今日 / 我的 / 设置，设计稿 04/07/09）。
 ///
@@ -17,18 +17,21 @@ import 'package:get_it/get_it.dart';
 /// （设计稿 01–03）；引导完成与否持久化在 app 壳。
 /// W2 路由表就绪后：Tab 改命名路由 +
 /// 通知深链分发（healthassistant://stretch?advice_id=）。
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key, this.onFirstLaunch});
 
   /// 首启流程回调（null 则跳过；app 壳内判断是否已看过引导）。
   final Future<void> Function(BuildContext context)? onFirstLaunch;
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
+
+  /// 花园刷新信号(递增):游戏返回后触发今日页重读剩余次数。
+  int _gardenTick = 0;
 
   @override
   void initState() {
@@ -49,9 +52,11 @@ class _MainShellState extends State<MainShell> {
           HomeScreenRoute(
             onQuickStretch: isDevBuild ? () => _pushStretch(context) : null,
             onOpenReminderSettings: () => _pushReminderSettings(context),
+            gardenRefreshTick: _gardenTick,
           ),
           ProfileScreenRoute(
             onReminderSettings: () => _pushReminderSettings(context),
+            onOpenGarden: () => _pushGame(context),
           ),
           SettingsScreenRoute(
             // 开发者区块（设计稿等字样）仅 dev 渠道注入，master 不显示
@@ -62,6 +67,7 @@ class _MainShellState extends State<MainShell> {
                     ('演示节奏（1 分钟间隔）开关', () => _toggleDemoRhythm(context)),
                     ('发送测试提醒（通知链路自验）', _sendTestReminder),
                     ('花园立体风格 Demo', () => _pushGardenStyleDemo(context)),
+                    ('花畦锚点校准', () => _pushBedCalibration(context)),
                   ]
                 : const [],
           ),
@@ -100,9 +106,21 @@ class _MainShellState extends State<MainShell> {
   }
 
   void _pushStretch(BuildContext context) {
-    StretchScreenRoute.push(context);
+    // 拉伸页内提供「去花园」入口(壳注入,feature_stretch 不依赖 feature_game)。
+    StretchScreenRoute.push(
+      context,
+      onOpenGarden: () => _pushGame(context),
+    );
   }
 
+  /// 慢植物花园(正式功能:拉伸页旁入口 + 设置页入口)。
+  void _pushGame(BuildContext context) {
+    GameScreenRoute.push(context).then((_) {
+      if (mounted) {
+        setState(() => _gardenTick++);
+      }
+    });
+  }
 
   /// 花园立体画风 Demo(实验:黏土立体 / 等距 2.5D 对比,仅 dev 渠道)。
   void _pushGardenStyleDemo(BuildContext context) {
@@ -113,30 +131,28 @@ class _MainShellState extends State<MainShell> {
     );
   }
 
-  /// dev 渠道「发送测试提醒」：直接发一条本地通知（v8 自用户页面移入）。
-  Future<void> _sendTestReminder() async {
-    await GetIt.I<ReminderNotificationService>().showNow(
-      id: ReminderNotificationIds.testId,
-      title: '测试提醒',
-      body: '这是一条测试提醒——倒计时到点后，会像这样提醒你',
+  /// 花畦锚点手动校准(dev:拖框对齐白框,导出常量回贴代码)。
+  void _pushBedCalibration(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const GardenBedCalibrationScreen(),
+      ),
     );
   }
 
-  /// dev 渠道「演示节奏」：三类间隔一律 1 分钟（忽略静音），真机 E2E 用。
+  /// dev 渠道「发送测试提醒」：经 DevToolsViewModel 发一条本地通知
+  /// （v8 自用户页面移入；View 不直调 Service——架构审计 F1 修复）。
+  Future<void> _sendTestReminder() async {
+    await ref.read(devToolsViewModelProvider).sendTestReminder();
+  }
+
+  /// dev 渠道「演示节奏」：经 DevToolsViewModel 切换，SnackBar 呈现结果。
   Future<void> _toggleDemoRhythm(BuildContext context) async {
-    final repo = GetIt.I<ReminderConfigRepository>();
-    final engine = GetIt.I<ReminderEngine>();
-    final config = await repo.load();
-    final next = config.copyWith(demoRhythm: !config.demoRhythm);
-    await repo.save(next);
-    await engine.onSettingsChanged();
+    final message =
+        await ref.read(devToolsViewModelProvider).toggleDemoRhythm();
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            next.demoRhythm ? '演示节奏已开启：1 分钟间隔（静音忽略）' : '演示节奏已关闭，恢复正常间隔',
-          ),
-        ),
+        SnackBar(content: Text(message)),
       );
     }
   }
