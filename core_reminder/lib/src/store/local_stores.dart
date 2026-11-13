@@ -24,6 +24,12 @@ abstract class ReminderPersistence
 
 @LazySingleton(as: ReminderPersistence)
 class PrefsReminderPersistence implements ReminderPersistence {
+  PrefsReminderPersistence({Clock? clock})
+      : _clock = clock ?? const SystemClock();
+
+  /// 注入时钟：当日计数窗口可测（与引擎 ReminderClock 同纪律）。
+  final Clock _clock;
+
   static const _stateKey = 'reminder_rule_state_v1';
   static const _fireKey = 'reminder_fire_log_v1';
   static const _feedbackKey = 'reminder_feedback_log_v1';
@@ -231,7 +237,7 @@ class PrefsReminderPersistence implements ReminderPersistence {
 
   void _pushCounts() {
     if (!_counts.isClosed) {
-      _counts.add(_countsFor(DateTime.now()));
+      _counts.add(_countsFor(_clock.now()));
     }
   }
 }
