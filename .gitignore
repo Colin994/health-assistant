@@ -81,3 +81,11 @@ design/game_art/guides/
 # 通用缓存与临时提示词
 __pycache__/
 design/game_art/tools/_*.txt
+
+# 游戏美术资产不随公开仓库分发（美术资源仅本地私有保存）。
+# 如需运行游戏页面，请自行放入 app/assets/game/ 对应文件。
+/app/assets/game/*
+!/app/assets/game/.gitkeep
+/design/game_art/**/*.png
+/design/game_art/**/*.jpg
+/design/game_art/**/*.webp

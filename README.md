@@ -27,9 +27,7 @@
 |---|---|---|
 | ![引导页](design/ui_walk/01-onboarding.png) | ![标签编辑](design/ui_walk/05-tag-editor.png) | ![设置](design/ui_walk/07-settings.png) |
 
-| 花园（2.5D 等距） | 接阳光 | 看星星 |
-|---|---|---|
-| ![花园](design/ui_walk/08-garden.jpg) | ![接阳光](design/ui_walk/09-catch-sun.jpg) | ![看星星](design/ui_walk/10-star-gazing.jpg) |
+> **美术资产说明**：游戏美术资源（花园场景/植物/装饰等 AI 生成位图）不随本仓库分发，仅本地私有保存；仓库已保留 `app/assets/game/` 目录占位，自行补齐资产后即可运行游戏页面。仓库内 `design/game_art/tools/` 保留了完整的出图管线脚本（可直接重新生成）。
 
 ## 📐 架构
 
