@@ -152,10 +152,12 @@ class _MainShellState extends ConsumerState<MainShell> {
   }
 
   /// 结算面板预览(dev:真实 GameScreen 结算态,验证游戏化结算卡)。
+  ///
+  /// 预览页不接 VM:「回到花园/退出」直接返回上一页。
   void _pushResultPreview(BuildContext context) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => GameScreen(
+        builder: (routeContext) => GameScreen(
           state: const GameState(
             phase: GamePhase.result,
             resultScore: 95,
@@ -166,13 +168,15 @@ class _MainShellState extends ConsumerState<MainShell> {
             resultSunshine: 19,
             todaySunshineTotal: 120,
           ),
-          onIntent: _ignoreIntent,
+          onIntent: (intent) {
+            if (intent is BackToGardenPressed || intent is ExitPressed) {
+              Navigator.of(routeContext).pop();
+            }
+          },
         ),
       ),
     );
   }
-
-  void _ignoreIntent(GameIntent intent) {}
 
   /// dev 渠道「发送测试提醒」：经 DevToolsViewModel 发一条本地通知
   /// （v8 自用户页面移入；View 不直调 Service——架构审计 F1 修复）。
