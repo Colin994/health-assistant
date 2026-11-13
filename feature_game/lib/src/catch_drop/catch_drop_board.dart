@@ -8,8 +8,8 @@ import 'catch_drop_session.dart';
 
 /// 接阳光棋盘(§6.1 v0.5,游戏化表现层)。
 ///
-/// 组合:位图背景(iso 花园天空)+CustomPaint(倒计时/光晕/粒子/飘字/HUD 分数)
-/// + 图像精灵(阳光/金阳光用 ComfyUI 生成的卡通图)
+/// 组合:CustomPaint(倒计时/光晕/粒子/飘字/HUD 分数)+ iso 风精灵图
+/// (阳光/金阳光/篮子);背景由外层全屏铺 backdrop_catch.png(见 _PlayArea)。
 /// + 篮子容器(接住时弹性缩放)。
 class CatchDropBoard extends StatefulWidget {
   const CatchDropBoard({
@@ -184,14 +184,6 @@ class _CatchDropBoardState extends State<CatchDropBoard>
             return Stack(
               clipBehavior: Clip.none,
               children: [
-                // 2.5D 玩法背景(iso 花园世界,上 70% 天空留白给掉落物)。
-                Positioned.fill(
-                  child: Image.asset(
-                    'assets/game/backdrop_catch.png',
-                    fit: BoxFit.cover,
-                    alignment: Alignment.bottomCenter,
-                  ),
-                ),
                 Positioned.fill(
                   child: CustomPaint(
                     painter: _CatchDropPainter(
@@ -436,21 +428,65 @@ class _CatchDropPainter extends CustomPainter {
         )..layout();
         pctTp.paint(canvas, Offset(x - pctTp.width / 2, y + sz * 1.02));
       }
-      // 未对齐:从篮子指向金阳光的箭头(告诉用户往哪移)。
+      // 未对齐:目标侧屏幕边缘脉动光带 + 顶部方向胶囊(告诉用户往哪边摇头)。
       if (golden && !snapshot.goldenAligned) {
-        final basketX = snapshot.containerX * w;
-        final dir = (x - basketX).sign;
-        final tip = Offset(basketX + dir * 34, h - 76);
-        final arrow = Path()
-          ..moveTo(tip.dx, tip.dy)
-          ..lineTo(tip.dx - dir * 12, tip.dy - 10)
-          ..lineTo(tip.dx - dir * 12, tip.dy + 10)
-          ..close();
-        canvas.drawPath(
-          arrow,
-          Paint()..color = const Color(0xFFFFC933).withValues(alpha: 0.9),
+        final dir = snapshot.goldenSide == 0
+            ? (x < w / 2 ? -1 : 1)
+            : snapshot.goldenSide;
+        final pulse =
+            (math.sin(now.inMilliseconds / 180 * math.pi) * 0.5 + 0.5) * 0.35 + 0.25;
+        final edgeRect = Rect.fromLTWH(
+          dir < 0 ? 0 : w - 14,
+          0,
+          14,
+          h,
+        );
+        canvas.drawRect(
+          edgeRect,
+          Paint()
+            ..shader = LinearGradient(
+              begin: dir < 0 ? Alignment.centerLeft : Alignment.centerRight,
+              end: dir < 0 ? Alignment.centerRight : Alignment.centerLeft,
+              colors: [
+                AppColors.primary.withValues(alpha: pulse),
+                AppColors.primary.withValues(alpha: 0),
+              ],
+            ).createShader(edgeRect),
         );
       }
+    }
+
+    // 金阳光方向胶囊(置于倒计时条下方居中)。
+    if (snapshot.goldenPresent) {
+      final aligned = snapshot.goldenAligned;
+      final charging = snapshot.goldenChargeProgress > 0;
+      final label = aligned
+          ? (charging ? '保持住… ${(snapshot.goldenChargeProgress * 100).round()}%' : '保持住…')
+          : '向${snapshot.goldenSide < 0 ? '左' : snapshot.goldenSide > 0 ? '右' : ''}摇头';
+      final tp = TextPainter(
+        text: TextSpan(
+          text: label,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: aligned ? Colors.white : const Color(0xFF28332F),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final pillW = tp.width + 26;
+      final pillRect = RRect.fromRectAndRadius(
+        Rect.fromLTWH(w / 2 - pillW / 2, 14, pillW, 32),
+        const Radius.circular(16),
+      );
+      canvas.drawRRect(
+        pillRect,
+        Paint()
+          ..color = aligned
+              ? AppColors.primary.withValues(alpha: 0.85)
+              : Colors.black.withValues(alpha: 0.42),
+      );
+      tp.paint(canvas, Offset(w / 2 - tp.width / 2, 14 + (32 - tp.height) / 2));
     }
 
     // 粒子。

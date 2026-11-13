@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:feature_design_system/feature_design_system.dart';
 import 'package:flutter/material.dart';
 
 import 'catch_drop_board.dart';
@@ -24,6 +25,9 @@ class _CatchDropPreviewScreenState extends State<CatchDropPreviewScreen> {
   var _elapsed = Duration.zero;
   var _score = 0;
   var _nextId = 0;
+  // 金阳光引导演示:每 6s 切换在场与方向(左/右交替)。
+  var _goldenPresent = false;
+  var _goldenSide = 1;
 
   @override
   void initState() {
@@ -41,6 +45,9 @@ class _CatchDropPreviewScreenState extends State<CatchDropPreviewScreen> {
           }
           return false;
         });
+        final sec = _elapsed.inSeconds;
+        _goldenPresent = sec % 12 >= 4 && sec % 12 < 10;
+        _goldenSide = (sec ~/ 12).isEven ? 1 : -1;
       });
     });
     // 每 2.5s 落一个阳光(第 4 个起为金阳光,便于预览两种精灵)。
@@ -78,14 +85,58 @@ class _CatchDropPreviewScreenState extends State<CatchDropPreviewScreen> {
       activeDrops: List.unmodifiable(_drops),
       goldenChargeProgress: 0,
       goldenCharging: false,
-      canFinishEarly: false,
+      canFinishEarly: _score >= 40,
+      goldenPresent: _goldenPresent,
+      goldenSide: _goldenSide,
     );
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(title: const Text('接阳光 2.5D 预览')),
-      body: Column(
+      body: Stack(
+        fit: StackFit.expand,
         children: [
-          const SizedBox(height: 8),
+          const Image(
+            image: AssetImage('assets/game/backdrop_catch.png'),
+            fit: BoxFit.cover,
+            alignment: Alignment.bottomCenter,
+          ),
+          Column(
+        children: [
+          // 复刻 _PlayArea 顶栏:倒计时 HUD 胶囊。
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 10, 68, 0),
+            child: Row(
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.38),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.timer_outlined,
+                        size: 16,
+                        color: Colors.white.withValues(alpha: 0.85),
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        '28s',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: CatchDropBoard(
               snapshot: snapshot,
@@ -96,7 +147,28 @@ class _CatchDropPreviewScreenState extends State<CatchDropPreviewScreen> {
               tickMs: 50,
             ),
           ),
-          const SizedBox(height: 8),
+          // 复刻 _PlayArea 底栏:达标后浮现的提前完成按钮。
+          if (snapshot.canFinishEarly)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: FilledButton.icon(
+                onPressed: () {},
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: const Text('提前完成'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.accentWarm,
+                  foregroundColor: AppColors.textPrimary,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            )
+          else
+            const SizedBox(height: 16),
+        ],
+      ),
         ],
       ),
     );

@@ -69,6 +69,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                     ('花园立体风格 Demo', () => _pushGardenStyleDemo(context)),
                     ('花畦锚点校准', () => _pushBedCalibration(context)),
                     ('接阳光 2.5D 预览', () => _pushCatchPreview(context)),
+                    ('结算面板预览', () => _pushResultPreview(context)),
                   ]
                 : const [],
           ),
@@ -149,6 +150,29 @@ class _MainShellState extends ConsumerState<MainShell> {
       ),
     );
   }
+
+  /// 结算面板预览(dev:真实 GameScreen 结算态,验证游戏化结算卡)。
+  void _pushResultPreview(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => GameScreen(
+          state: const GameState(
+            phase: GamePhase.result,
+            resultScore: 95,
+            resultCaughtNormal: 14,
+            resultCaughtGolden: 1,
+            resultElapsedSeconds: 31,
+            resultFinishedEarly: true,
+            resultSunshine: 19,
+            todaySunshineTotal: 120,
+          ),
+          onIntent: _ignoreIntent,
+        ),
+      ),
+    );
+  }
+
+  void _ignoreIntent(GameIntent intent) {}
 
   /// dev 渠道「发送测试提醒」：经 DevToolsViewModel 发一条本地通知
   /// （v8 自用户页面移入；View 不直调 Service——架构审计 F1 修复）。

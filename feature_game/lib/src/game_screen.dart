@@ -1043,40 +1043,78 @@ class _PlayArea extends StatelessWidget {
     final remaining = (total - elapsed).clamp(0, total);
     final canFinishEarly =
         catchSnap?.canFinishEarly ?? starSnap?.canFinishEarly ?? false;
-    return Column(
+    return Stack(
+      fit: StackFit.expand,
       children: [
+        // 全屏玩法背景(沉浸式:顶栏/底栏也落在场景上,无白边割裂)。
+        const Image(
+          image: AssetImage('assets/game/backdrop_catch.png'),
+          fit: BoxFit.cover,
+          alignment: Alignment.bottomCenter,
+        ),
+        SafeArea(
+          child: Column(
+      children: [
+        // 顶部:倒计时 HUD 胶囊(左侧),退出按钮由外层浮于右上。
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 10, 68, 0),
           child: Row(
             children: [
-              Text(
-                '${remaining}s',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: remaining <= 10
-                      ? AppColors.danger
-                      : AppColors.textPrimary,
-                  fontWeight: FontWeight.w600,
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.38),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.timer_outlined,
+                      size: 16,
+                      color: remaining <= 10
+                          ? AppColors.danger
+                          : Colors.white.withValues(alpha: 0.85),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      '${remaining}s',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        // 最后 10 秒变红加粗,提示收尾。
+                        color: remaining <= 10
+                            ? AppColors.danger
+                            : Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const Spacer(),
-              if (canFinishEarly && !paused)
-                FilledButton.tonal(
-                  onPressed: () => onIntent(const FinishEarlyPressed()),
-                  child: const Text('✓ 提前完成'),
-                ),
             ],
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          child: Text(
-            state.statusText,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: context.tokens.textSecondary,
+        if (state.statusText.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.32),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                state.statusText,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
-            textAlign: TextAlign.center,
           ),
-        ),
         Expanded(
           child: Center(
             child: state.kind == GameKind.catchDrop && catchSnap != null
@@ -1099,13 +1137,39 @@ class _PlayArea extends StatelessWidget {
                 : const SizedBox.shrink(),
           ),
         ),
+        // 底部:提前完成(达标后浮现的居中按钮,不挤占顶部)+ 暂停提示。
+        if (canFinishEarly && !paused)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: FilledButton.icon(
+              onPressed: () => onIntent(const FinishEarlyPressed()),
+              icon: const Icon(Icons.check_rounded, size: 18),
+              label: const Text('提前完成'),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.accentWarm,
+                foregroundColor: AppColors.textPrimary,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+              ),
+            ),
+          ),
         if (paused)
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Text('已暂停 · 回到画面前保持放松', style: theme.textTheme.titleMedium),
+            child: Text(
+              '已暂停 · 回到画面前保持放松',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
           )
         else
           const SizedBox(height: 16),
+      ],
+          ),
+        ),
       ],
     );
   }
@@ -1132,75 +1196,187 @@ class _ResultOverlay extends StatelessWidget {
     return ColoredBox(
       color: Colors.black.withValues(alpha: 0.45),
       child: Center(
-        child: Card(
-          margin: const EdgeInsets.symmetric(horizontal: 28),
-          color: theme.colorScheme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(24),
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.88, end: 1),
+          duration: const Duration(milliseconds: 320),
+          curve: Curves.easeOutBack,
+          builder: (context, scale, child) =>
+              Transform.scale(scale: scale, child: child),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 28),
+            padding: const EdgeInsets.fromLTRB(26, 26, 26, 22),
+            decoration: BoxDecoration(
+              // 游戏风深色结算面板(与 HUD 同一套深底白字语言)。
+              color: const Color(0xFF28332F),
+              borderRadius: BorderRadius.circular(AppRadius.xl),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.16),
+              ),
+              boxShadow: AppShadows.card,
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   isStar ? '🌙 本局结算' : '☀️ 本局结算',
-                  style: theme.textTheme.headlineSmall,
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '完成用时 ${state.resultElapsedSeconds} 秒'
-                  '${state.resultFinishedEarly ? ' · 提前完成' : ''}',
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  isStar
-                      ? '收集 ${state.resultStars} 颗星 · 总分 ${state.resultScore}'
-                      : '接住 太阳 ${state.resultCaughtNormal}'
-                            ' · 金阳光 ${state.resultCaughtGolden}'
-                            ' · 总分 ${state.resultScore}',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: context.tokens.textSecondary,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                // 核心数字:奖励货币(最大最亮)。
                 Text(
                   isStar
-                      ? '✨ +${state.resultStardust} 星屑'
-                      : '☀️ +${state.resultSunshine} 阳光',
-                  style: theme.textTheme.headlineMedium,
+                      ? '✨ +${state.resultStardust}'
+                      : '☀️ +${state.resultSunshine}',
+                  style: theme.textTheme.headlineMedium?.copyWith(
+                    color: AppColors.accentWarm,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 4),
+                Text(
+                  isStar ? '星屑' : '阳光',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.6),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                // 明细行(三格):用时 / 接住 / 总分。
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _ResultStat(
+                      label: '用时',
+                      value: '${state.resultElapsedSeconds}s',
+                    ),
+                    _ResultDivider(),
+                    _ResultStat(
+                      label: isStar ? '收集' : '接住',
+                      value: isStar
+                          ? '${state.resultStars}'
+                          : '${state.resultCaughtNormal}'
+                                '${state.resultCaughtGolden > 0 ? '+${state.resultCaughtGolden}金' : ''}',
+                    ),
+                    _ResultDivider(),
+                    _ResultStat(
+                      label: '总分',
+                      value: '${state.resultScore}',
+                      highlight: true,
+                    ),
+                  ],
+                ),
+                if (state.resultFinishedEarly) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    '⚡ 提前完成',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.accentWarm,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 Text(
                   isStar
                       ? '星屑累计 ${state.stardustTotal}'
                       : '阳光累计 ${state.todaySunshineTotal}',
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: context.tokens.textTertiary,
+                    color: Colors.white.withValues(alpha: 0.55),
                   ),
                 ),
                 if (unlockedName != null) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    '🎉 星屑兑换:解锁「$unlockedName」种子!',
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: context.tokens.primary,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 8,
                     ),
-                    textAlign: TextAlign.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Text(
+                      '🎉 星屑兑换:解锁「$unlockedName」种子!',
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: AppColors.accentWarm,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 ],
-                const SizedBox(height: 18),
-                FilledButton(
-                  onPressed: () => onIntent(const BackToGardenPressed()),
-                  child: const Text('回到花园'),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () => onIntent(const BackToGardenPressed()),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('回到花园'),
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// 结算明细单格:深底上的弱标签 + 强数值。
+class _ResultStat extends StatelessWidget {
+  const _ResultStat({
+    required this.label,
+    required this.value,
+    this.highlight = false,
+  });
+
+  final String label;
+  final String value;
+  final bool highlight;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            value,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: highlight ? AppColors.accentWarm : Colors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.55),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 结算明细竖向分隔线。
+class _ResultDivider extends StatelessWidget {
+  const _ResultDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 1,
+      height: 28,
+      color: Colors.white.withValues(alpha: 0.14),
     );
   }
 }
