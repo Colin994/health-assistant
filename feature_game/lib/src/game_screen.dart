@@ -130,12 +130,12 @@ const _stageNames = ['发芽', '幼苗', '成长', '花苞', '盛开', '待收']
 /// iso 场景开关(true=位图背景+花畦锚点,false=扁平 painter+网格,降级回退用)。
 const bool _useIsoScene = true;
 
-/// 四花畦归一化锚点(程序化检测空畦白框 bbox;顺序=plots[0..3])。
+/// 四花畦归一化锚点(真机手动校准值,四畦统一尺寸;顺序=plots[0..3])。
 const _isoBedSpecs = [
-  _IsoBedSpec(Offset(0.494, 0.474), Size(0.254, 0.095)), // 后
-  _IsoBedSpec(Offset(0.289, 0.544), Size(0.297, 0.110)), // 左
-  _IsoBedSpec(Offset(0.744, 0.555), Size(0.293, 0.088)), // 右
-  _IsoBedSpec(Offset(0.516, 0.629), Size(0.297, 0.112)), // 前
+  _IsoBedSpec(Offset(0.516, 0.464), Size(0.174, 0.074)), // 后
+  _IsoBedSpec(Offset(0.293, 0.548), Size(0.174, 0.074)), // 左
+  _IsoBedSpec(Offset(0.748, 0.548), Size(0.174, 0.074)), // 右
+  _IsoBedSpec(Offset(0.520, 0.629), Size(0.174, 0.074)), // 前
 ];
 
 /// 单块花畦锚点规格(图内归一化中心+宽高)。
@@ -466,57 +466,67 @@ class _IsoPlotView extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final bed = LayoutBuilder(
-      builder: (context, constraints) => Stack(
-        children: [
-          if (plot == null)
-            const Center(
-              // 极淡高亮勾出可点区域(不遮花畦细节)。
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Color(0x14FFFFFF),
-                  borderRadius: BorderRadius.all(Radius.circular(14)),
+      builder: (context, constraints) {
+        final bedW = constraints.maxWidth;
+        final bedH = constraints.maxHeight;
+        // 植物容器:向上溢出花畦(Clip.none),方形边长≈花畦高 2.2 倍,
+        // 土丘基座(图底部)落在花畦中心略下。
+        final plantSize = bedH * 2.2;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            if (plot == null)
+              const Center(
+                // 极淡高亮勾出可点区域(不遮花畦细节)。
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Color(0x14FFFFFF),
+                    borderRadius: BorderRadius.all(Radius.circular(14)),
+                  ),
+                  child: SizedBox.expand(),
                 ),
-                child: SizedBox.expand(),
-              ),
-            )
-          else ...[
-            // 植物整体上移:土丘基座落位花畦中下部,株体朝上生长。
-            Align(
-              alignment: const Alignment(0, -0.35),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 350),
-                child: Image.asset(
-                  'assets/game/plant_iso_${plot!.species}_stage${plot!.stage}.png',
-                  key: ValueKey('iso_${plot!.species}_${plot!.stage}'),
-                  fit: BoxFit.contain,
-                  // iso 植物图缺失时回退旧贴纸(过渡期容错)。
-                  errorBuilder: (_, _, _) => Image.asset(
-                    'assets/game/plant_${plot!.species}_stage${plot!.stage}.png',
+              )
+            else ...[
+              Positioned(
+                left: bedW / 2 - plantSize / 2,
+                top: bedH * 0.5 - plantSize * 0.9,
+                width: plantSize,
+                height: plantSize,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 350),
+                  child: Image.asset(
+                    'assets/game/plant_iso_${plot!.species}_stage${plot!.stage}.png',
+                    key: ValueKey('iso_${plot!.species}_${plot!.stage}'),
                     fit: BoxFit.contain,
+                    // iso 植物图缺失时回退旧贴纸(过渡期容错)。
+                    errorBuilder: (_, _, _) => Image.asset(
+                      'assets/game/plant_${plot!.species}_stage${plot!.stage}.png',
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ),
-            ),
-            Positioned(
-              left: 10,
-              right: 10,
-              bottom: constraints.maxHeight * 0.10,
-              child: LinearProgressIndicator(
-                value: plot!.progressToNext,
-                minHeight: 4,
-                borderRadius: BorderRadius.circular(3),
-                backgroundColor: Colors.white.withValues(alpha: 0.35),
-              ),
-            ),
-            if (plot!.harvestable)
               Positioned(
-                top: constraints.maxHeight * 0.06,
-                right: 4,
-                child: Text('🌸 收', style: theme.textTheme.bodySmall),
+                left: 10,
+                right: 10,
+                bottom: bedH * 0.10,
+                child: LinearProgressIndicator(
+                  value: plot!.progressToNext,
+                  minHeight: 4,
+                  borderRadius: BorderRadius.circular(3),
+                  backgroundColor: Colors.white.withValues(alpha: 0.35),
+                ),
               ),
+              if (plot!.harvestable)
+                Positioned(
+                  top: bedH * 0.06,
+                  right: 4,
+                  child: Text('🌸 收', style: theme.textTheme.bodySmall),
+                ),
+            ],
           ],
-        ],
-      ),
+        );
+      },
     );
     return GestureDetector(
       onTap: onTap,
