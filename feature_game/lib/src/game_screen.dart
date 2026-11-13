@@ -22,10 +22,6 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final inSession =
-        state.phase == GamePhase.playing ||
-        state.phase == GamePhase.paused ||
-        state.phase == GamePhase.result;
     return Scaffold(
       backgroundColor: context.tokens.background,
       body: Stack(
@@ -47,7 +43,8 @@ class GameScreen extends StatelessWidget {
                   icon: Icons.close_rounded,
                   semanticLabel: '退出',
                   onTap: () => onIntent(const ExitPressed()),
-                  onDark: inSession,
+                  // 花园/练习场景均为彩色画面,统一深色透明 HUD 风格。
+                  onDark: true,
                 ),
               ),
             ),
@@ -160,10 +157,8 @@ class _GardenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    // 时段与天空区文字色(呈现层视觉决策,夜景转白保对比度)。
+    // 时段由本地时钟驱动,场景图与花畦锚点随时段切换(构图锁定)。
     final timeOfDay = GardenTimeOfDay.fromClock(DateTime.now());
-    final skyText = GardenScene.skyTextPrimary(timeOfDay);
-    final skyTextSecondary = GardenScene.skyTextSecondary(timeOfDay);
     final busy =
         state.phase == GamePhase.countdown ||
         state.phase == GamePhase.calibrating;
@@ -193,53 +188,78 @@ class _GardenView extends StatelessWidget {
                 )
               : Column(
                   children: [
+                    // 顶部 HUD:深色胶囊保证任意场景下的对比度。
                     Padding(
                       padding: const EdgeInsets.fromLTRB(10, 10, 68, 4),
                       child: Column(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '☀️ ${state.todaySunshineTotal}'
-                                '  ✨ ${state.stardustTotal}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: skyText,
-                                ),
-                              ),
-                              // 押花册入口(可点查看已收集物种)。
-                              TextButton(
-                                onPressed: () => _openHerbarium(context),
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                  ),
-                                  minimumSize: const Size(0, 40),
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: Text(
-                                  '📖 ${state.harvestedCount}',
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.38),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '☀️ ${state.todaySunshineTotal}'
+                                  '  ✨ ${state.stardustTotal}',
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: skyText,
+                                    color: Colors.white,
                                   ),
                                 ),
-                              ),
-                              Text(
-                                '今日可练 ${state.quotaRemaining}',
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: skyText,
+                                // 押花册入口(可点查看已收集物种)。
+                                TextButton(
+                                  onPressed: () => _openHerbarium(context),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                    ),
+                                    minimumSize: const Size(0, 40),
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Text(
+                                    '📖 ${state.harvestedCount}',
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(color: Colors.white),
+                                  ),
                                 ),
-                              ),
-                            ],
+                                Text(
+                                  '今日可练 ${state.quotaRemaining}',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           if (state.statusText.isNotEmpty)
-                            Text(
-                              state.statusText,
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: skyTextSecondary,
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 3,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      Colors.black.withValues(alpha: 0.30),
+                                  borderRadius:
+                                      BorderRadius.circular(14),
+                                ),
+                                child: Text(
+                                  state.statusText,
+                                  style: theme.textTheme.bodySmall
+                                      ?.copyWith(color: Colors.white),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
                             ),
                         ],
                       ),
@@ -249,35 +269,50 @@ class _GardenView extends StatelessWidget {
                       // 此处仅占位把按钮区压到底部。
                       child: const SizedBox.shrink(),
                     ),
+                    // 底部 HUD:深色圆角条承托玩法按钮,提升对比度。
                     Padding(
                       padding: const EdgeInsets.all(10),
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          FilledButton(
-                            onPressed: () => _startWithConsent(
-                              context,
-                              const StartCatchDropPressed(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 6,
+                          runSpacing: 6,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            FilledButton(
+                              onPressed: () => _startWithConsent(
+                                context,
+                                const StartCatchDropPressed(),
+                              ),
+                              child: const Text('☀️ 接阳光'),
                             ),
-                            child: const Text('☀️ 接阳光'),
-                          ),
-                          FilledButton.tonal(
-                            onPressed: () => _startWithConsent(
-                              context,
-                              const StartStarGazingPressed(),
+                            FilledButton.tonal(
+                              onPressed: () => _startWithConsent(
+                                context,
+                                const StartStarGazingPressed(),
+                              ),
+                              child: Text(
+                                state.starGazeUnlocked ? '🌙 看星星' : '🔒 看星星',
+                              ),
                             ),
-                            child: Text(
-                              state.starGazeUnlocked ? '🌙 看星星' : '🔒 看星星',
+                            IconButton(
+                              onPressed: () => _openShop(context),
+                              icon: const Icon(
+                                Icons.storefront_outlined,
+                                color: Colors.white,
+                              ),
+                              tooltip: '商店',
                             ),
-                          ),
-                          IconButton(
-                            onPressed: () => _openShop(context),
-                            icon: const Icon(Icons.storefront_outlined),
-                            tooltip: '商店',
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -417,8 +452,9 @@ class _IsoPlotsLayer extends StatelessWidget {
   }
 }
 
-/// 单块花畦上的地块视图:空地=半透明白框提示;有植物=位图落畦 +
-/// 底部细进度条 + 收获角标;整体响应点击(触控区=花畦矩形)。
+/// 单块花畦上的地块视图:空地=呼吸脉动的游戏风徽章提示;
+/// 有植物=位图落畦(整体上移,土丘基座对齐花畦下半部) + 细进度条 +
+/// 收获角标;整体响应点击(触控区=花畦矩形)。
 class _IsoPlotView extends StatelessWidget {
   const _IsoPlotView({required this.plot, required this.onTap});
 
@@ -429,74 +465,136 @@ class _IsoPlotView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    if (plot == null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.45)),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.add_circle_outline,
-                  size: 22,
-                  color: Colors.white.withValues(alpha: 0.85),
-                ),
-                Text(
-                  '种花',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.9),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-    final stage = plot!.stage;
-    return GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Stack(
+    final bed = LayoutBuilder(
+      builder: (context, constraints) => Stack(
         children: [
-          Center(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 350),
-              child: Image.asset(
-                'assets/game/plant_iso_${plot!.species}_stage$stage.png',
-                key: ValueKey('iso_${plot!.species}_$stage'),
-                fit: BoxFit.contain,
-                // iso 植物图缺失时回退旧贴纸(过渡期容错)。
-                errorBuilder: (_, _, _) => Image.asset(
-                  'assets/game/plant_${plot!.species}_stage$stage.png',
+          if (plot == null)
+            const Center(
+              // 极淡高亮勾出可点区域(不遮花畦细节)。
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Color(0x14FFFFFF),
+                  borderRadius: BorderRadius.all(Radius.circular(14)),
+                ),
+                child: SizedBox.expand(),
+              ),
+            )
+          else ...[
+            // 植物整体上移:土丘基座落位花畦中下部,株体朝上生长。
+            Align(
+              alignment: const Alignment(0, -0.35),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 350),
+                child: Image.asset(
+                  'assets/game/plant_iso_${plot!.species}_stage${plot!.stage}.png',
+                  key: ValueKey('iso_${plot!.species}_${plot!.stage}'),
                   fit: BoxFit.contain,
+                  // iso 植物图缺失时回退旧贴纸(过渡期容错)。
+                  errorBuilder: (_, _, _) => Image.asset(
+                    'assets/game/plant_${plot!.species}_stage${plot!.stage}.png',
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
-          ),
-          Positioned(
-            left: 8,
-            right: 8,
-            bottom: 2,
-            child: LinearProgressIndicator(
-              value: plot!.progressToNext,
-              minHeight: 4,
-              borderRadius: BorderRadius.circular(3),
-              backgroundColor: Colors.white.withValues(alpha: 0.4),
-            ),
-          ),
-          if (plot!.harvestable)
             Positioned(
-              top: 0,
-              right: 0,
-              child: Text('🌸 收', style: theme.textTheme.bodySmall),
+              left: 10,
+              right: 10,
+              bottom: constraints.maxHeight * 0.10,
+              child: LinearProgressIndicator(
+                value: plot!.progressToNext,
+                minHeight: 4,
+                borderRadius: BorderRadius.circular(3),
+                backgroundColor: Colors.white.withValues(alpha: 0.35),
+              ),
             ),
+            if (plot!.harvestable)
+              Positioned(
+                top: constraints.maxHeight * 0.06,
+                right: 4,
+                child: Text('🌸 收', style: theme.textTheme.bodySmall),
+              ),
+          ],
         ],
+      ),
+    );
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      // 空畦在淡高亮上叠加脉动徽章;有植物时整畦点击进植物详情。
+      child: plot == null
+          ? Stack(
+              children: [bed, const _IsoBedHint()],
+            )
+          : bed,
+    );
+  }
+}
+
+/// 游戏风空畦提示:呼吸脉动的深色胶囊徽章(加号+文字),置于花畦中心。
+class _IsoBedHint extends StatefulWidget {
+  const _IsoBedHint();
+
+  @override
+  State<_IsoBedHint> createState() => _IsoBedHintState();
+}
+
+class _IsoBedHintState extends State<_IsoBedHint>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ScaleTransition(
+        scale: Tween(begin: 1.0, end: 1.12).animate(
+          CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.40),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.55),
+              width: 1.2,
+            ),
+          ),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.add_circle_outline,
+                size: 16,
+                color: Colors.white,
+              ),
+              SizedBox(width: 4),
+              Text(
+                '种花',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
