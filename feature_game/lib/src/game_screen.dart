@@ -681,7 +681,7 @@ class _HerbariumSheet extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Image.asset(
-                            'assets/game/plant_${seed.id}_stage4.png',
+                            'assets/game/plant_iso_${seed.id}_stage4.png',
                             height: 72,
                           ),
                           Text(
@@ -819,7 +819,7 @@ class _SeedSheet extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Image.asset(
-                            'assets/game/plant_${seed.id}_stage4.png',
+                            'assets/game/plant_iso_${seed.id}_stage4.png',
                             height: 90,
                           ),
                           Text(
@@ -876,7 +876,7 @@ class _PlantSheet extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
-                  'assets/game/plant_${plot.species}_stage${plot.stage}.png',
+                  'assets/game/plant_iso_${plot.species}_stage${plot.stage}.png',
                   height: 88,
                 ),
                 const SizedBox(width: 16),

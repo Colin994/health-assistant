@@ -27,18 +27,35 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
   int _currentIndex = 0;
 
-  /// 花园刷新信号(递增):游戏返回后触发今日页重读剩余次数。
+  /// 今日页刷新信号(递增):游戏返回/回前台/切回今日 Tab 时触发重读
+  /// 花园剩余次数与跨天状态。
   int _gardenTick = 0;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       widget.onFirstLaunch?.call(context);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 跨天/长时间后台后回前台:配额等按日数据需要重读。
+    if (state == AppLifecycleState.resumed && mounted) {
+      setState(() => _gardenTick++);
+    }
   }
 
   @override
@@ -69,6 +86,7 @@ class _MainShellState extends ConsumerState<MainShell> {
                     ('花园立体风格 Demo', () => _pushGardenStyleDemo(context)),
                     ('花畦锚点校准', () => _pushBedCalibration(context)),
                     ('接阳光 2.5D 预览', () => _pushCatchPreview(context)),
+                    ('看星星 2.5D 预览', () => _pushStarPreview(context)),
                     ('结算面板预览', () => _pushResultPreview(context)),
                   ]
                 : const [],
@@ -77,7 +95,13 @@ class _MainShellState extends ConsumerState<MainShell> {
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _currentIndex,
-        onDestinationSelected: (index) => setState(() => _currentIndex = index),
+        onDestinationSelected: (index) => setState(() {
+          _currentIndex = index;
+          // 切回今日 Tab:重读花园配额(入口在「我的」,玩完回来数字要跟上)。
+          if (index == 0) {
+            _gardenTick++;
+          }
+        }),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.today_outlined),
@@ -147,6 +171,15 @@ class _MainShellState extends ConsumerState<MainShell> {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
         builder: (_) => const CatchDropPreviewScreen(),
+      ),
+    );
+  }
+
+  /// 看星星 2.5D 预览(dev:合成 snapshot,不接玩法逻辑)。
+  void _pushStarPreview(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const StarGazingPreviewScreen(),
       ),
     );
   }
