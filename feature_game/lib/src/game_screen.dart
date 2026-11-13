@@ -469,9 +469,6 @@ class _IsoPlotView extends StatelessWidget {
       builder: (context, constraints) {
         final bedW = constraints.maxWidth;
         final bedH = constraints.maxHeight;
-        // 植物容器:向上溢出花畦(Clip.none),方形边长≈花畦高 2.2 倍,
-        // 土丘基座(图底部)落在花畦中心略下。
-        final plantSize = bedH * 2.2;
         return Stack(
           clipBehavior: Clip.none,
           children: [
@@ -487,25 +484,24 @@ class _IsoPlotView extends StatelessWidget {
                 ),
               )
             else ...[
+              // 植物:容器取花畦全幅(校准小框≈实际花畦的 58%),按 sprite
+              // 宽高比 0.648 定高;使 sprite 内容中心(土丘中心,0.625 图高)
+              // 精确对齐花畦正中——即「种在花畦正中间」。
               Positioned(
-                left: bedW / 2 - plantSize / 2,
-                // sprite 底边钉在畦高 85% 处(bottomCenter 对齐与图片宽高比无关),
-                // 土丘基座(内容底 94%)稳定落在畦高 ~76%。
-                bottom: bedH * 0.15,
-                width: plantSize,
-                height: plantSize,
+                left: bedW / 2 - bedW * 1.7 / 2,
+                top: bedH / 2 - bedW * 1.7 * 0.648 * 0.625,
+                width: bedW * 1.7,
+                height: bedW * 1.7 * 0.648,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 350),
                   child: Image.asset(
                     'assets/game/plant_iso_${plot!.species}_stage${plot!.stage}.png',
                     key: ValueKey('iso_${plot!.species}_${plot!.stage}'),
                     fit: BoxFit.contain,
-                    alignment: Alignment.bottomCenter,
                     // iso 植物图缺失时回退旧贴纸(过渡期容错)。
                     errorBuilder: (_, _, _) => Image.asset(
                       'assets/game/plant_${plot!.species}_stage${plot!.stage}.png',
                       fit: BoxFit.contain,
-                      alignment: Alignment.bottomCenter,
                     ),
                   ),
                 ),
