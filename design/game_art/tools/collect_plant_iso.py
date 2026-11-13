@@ -45,8 +45,9 @@ def main() -> None:
             )
             img = Image.open(cut)
             img.save(MASTER / f'{tag}.png')
-            img.resize((512, 512), Image.LANCZOS).save(
-                APP_ASSETS / f'plant_iso_{tag}.png')
+            fit = img.copy()
+            fit.thumbnail((512, 512), Image.LANCZOS)
+            fit.save(APP_ASSETS / f'plant_iso_{tag}.png')
             cells.append((tag, Image.open(cut)))
             print('ok:', tag)
 

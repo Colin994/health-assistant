@@ -489,7 +489,7 @@ class _IsoPlotView extends StatelessWidget {
             else ...[
               Positioned(
                 left: bedW / 2 - plantSize / 2,
-                top: bedH * 0.5 - plantSize * 0.9,
+                top: bedH * 0.5 - plantSize * 0.80,
                 width: plantSize,
                 height: plantSize,
                 child: AnimatedSwitcher(
@@ -507,14 +507,28 @@ class _IsoPlotView extends StatelessWidget {
                 ),
               ),
               Positioned(
-                left: 10,
-                right: 10,
-                bottom: bedH * 0.10,
-                child: LinearProgressIndicator(
-                  value: plot!.progressToNext,
-                  minHeight: 4,
-                  borderRadius: BorderRadius.circular(3),
-                  backgroundColor: Colors.white.withValues(alpha: 0.35),
+                left: 8,
+                right: 8,
+                bottom: bedH * 0.08,
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.75),
+                      width: 1,
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(3),
+                    child: LinearProgressIndicator(
+                      value: plot!.progressToNext,
+                      minHeight: 7,
+                      backgroundColor: Colors.black.withValues(alpha: 0.55),
+                      valueColor: const AlwaysStoppedAnimation(
+                        Color(0xFFFCFF7D),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               if (plot!.harvestable)
