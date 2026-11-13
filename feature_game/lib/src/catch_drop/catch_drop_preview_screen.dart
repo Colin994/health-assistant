@@ -147,26 +147,32 @@ class _CatchDropPreviewScreenState extends State<CatchDropPreviewScreen> {
               tickMs: 50,
             ),
           ),
-          // 复刻 _PlayArea 底栏:达标后浮现的提前完成按钮。
-          if (snapshot.canFinishEarly)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: FilledButton.icon(
-                onPressed: () {},
-                icon: const Icon(Icons.check_rounded, size: 18),
-                label: const Text('提前完成'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.accentWarm,
-                  foregroundColor: AppColors.textPrimary,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
+          // 复刻 _PlayArea 底栏:提前完成按钮固定槽位(出现时不挤压棋盘)。
+          SizedBox(
+            height: 64,
+            child: Center(
+              child: IgnorePointer(
+                ignoring: !snapshot.canFinishEarly,
+                child: AnimatedOpacity(
+                  opacity: snapshot.canFinishEarly ? 1 : 0,
+                  duration: const Duration(milliseconds: 200),
+                  child: FilledButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.check_rounded, size: 18),
+                    label: const Text('提前完成'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.accentWarm,
+                      foregroundColor: AppColors.textPrimary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
                   ),
                 ),
               ),
-            )
-          else
-            const SizedBox(height: 16),
+            ),
+          ),
         ],
       ),
         ],

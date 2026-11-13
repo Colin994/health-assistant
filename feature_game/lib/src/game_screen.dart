@@ -1137,36 +1137,47 @@ class _PlayArea extends StatelessWidget {
                 : const SizedBox.shrink(),
           ),
         ),
-        // 底部:提前完成(达标后浮现的居中按钮,不挤占顶部)+ 暂停提示。
-        if (canFinishEarly && !paused)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: FilledButton.icon(
-              onPressed: () => onIntent(const FinishEarlyPressed()),
-              icon: const Icon(Icons.check_rounded, size: 18),
-              label: const Text('提前完成'),
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.accentWarm,
-                foregroundColor: AppColors.textPrimary,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 12,
+        // 底部:提前完成按钮占固定高度槽位(隐藏时保留空间),
+        // 避免按钮出现/消失挤压棋盘,把篮子顶起来。
+        SizedBox(
+          height: 64,
+          child: Center(
+            child: IgnorePointer(
+              ignoring: !canFinishEarly || paused,
+              child: AnimatedOpacity(
+                opacity: canFinishEarly && !paused ? 1 : 0,
+                duration: const Duration(milliseconds: 200),
+                child: AnimatedScale(
+                  scale: canFinishEarly && !paused ? 1 : 0.85,
+                  duration: const Duration(milliseconds: 200),
+                  child: FilledButton.icon(
+                    onPressed: () => onIntent(const FinishEarlyPressed()),
+                    icon: const Icon(Icons.check_rounded, size: 18),
+                    label: const Text('提前完成'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.accentWarm,
+                      foregroundColor: AppColors.textPrimary,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
+        ),
         if (paused)
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(bottom: 12),
             child: Text(
               '已暂停 · 回到画面前保持放松',
               style: theme.textTheme.titleMedium?.copyWith(
                 color: Colors.white,
               ),
             ),
-          )
-        else
-          const SizedBox(height: 16),
+          ),
       ],
           ),
         ),
