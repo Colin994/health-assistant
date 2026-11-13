@@ -6,8 +6,9 @@ import subprocess
 import sys
 
 TOOLS = pathlib.Path(__file__).parent
-ANCHORS = TOOLS.parent / 'ai_samples' / 'plant_anchors'
-OUT = TOOLS.parent / 'ai_samples' / 'plant_iso'
+AI = TOOLS.parent / 'ai_samples'
+ANCHORS = AI / 'plant_anchors'
+OUT = AI / 'plant_iso'
 API = 'http://127.0.0.1:8188'
 
 STAGE_DESC = {
@@ -41,6 +42,9 @@ def main() -> None:
         if species in NO_FLOWER_SPECIES and stage >= 3:
             stage_desc = ('a lush mature foliage plant with dense leaves only, '
                           'absolutely no flowers, no buds')
+        if species == 'lavender' and stage <= 2:
+            stage_desc = ('a young lavender plant with only narrow green leaves, '
+                          'absolutely no flowers, no buds')
         prompt = (
             f'Transform this potted {SPECIES_DESC[species]} illustration into a soft '
             f'low-poly 3D style plant at the {stage_desc}. The plant grows '
@@ -50,16 +54,18 @@ def main() -> None:
             'Keep the exact same plant species, leaf shapes, colors and growth '
             'stage. Plain solid white background. No text.'
         )
+        upload = anchor  # stage0/1 锚点已预裁(去盆区)
         prompt_file = TOOLS / '_plant_prompt.txt'
         prompt_file.write_text(prompt, encoding='utf-8')
         out_name = f'{species}_stage{stage}'
-        if list(OUT.glob(f'{out_name}_*.png')):
+        out_dir = AI / f'edit_plantiso_{out_name}'
+        if out_dir.exists() and any(out_dir.glob('*.png')):
             print('skip (exists):', out_name)
             continue
         print('gen:', out_name, flush=True)
         subprocess.run(
             [sys.executable, str(TOOLS / 'qwen_edit_gen.py'),
-             '--image', str(anchor),
+             '--image', str(upload),
              '--prompt-file', str(prompt_file),
              '--tag', f'plantiso_{out_name}', '--batch', '2',
              '--api', API],
