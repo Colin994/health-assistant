@@ -16,6 +16,41 @@ SPECIES = ['cyperus', 'hydrocotyle', 'lavender', 'rose', 'sunflower']
 STAGES = range(6)
 
 
+
+def _deglass(img: Image.Image) -> None:
+    """清除与透明区连通的浅色不透明像素(白底残留)。"""
+    from collections import deque
+    w, h = img.size
+    px = img.load()
+
+    def is_light(x: int, y: int) -> bool:
+        r, g, b, a = px[x, y]
+        return a > 0 and min(r, g, b) >= 200 and (max(r, g, b) - min(r, g, b)) <= 46
+
+    seen = [[False] * w for _ in range(h)]
+    q = deque()
+    for x in range(w):
+        for y in (0, h - 1):
+            if not seen[y][x] and (px[x, y][3] == 0 or is_light(x, y)):
+                seen[y][x] = True
+                q.append((x, y))
+    for y in range(h):
+        for x in (0, w - 1):
+            if not seen[y][x] and (px[x, y][3] == 0 or is_light(x, y)):
+                seen[y][x] = True
+                q.append((x, y))
+    while q:
+        x, y = q.popleft()
+        r, g, b, a = px[x, y]
+        if a > 0:
+            px[x, y] = (r, g, b, 0)
+        for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
+            if 0 <= nx < w and 0 <= ny < h and not seen[ny][nx]:
+                if px[nx, ny][3] == 0 or is_light(nx, ny):
+                    seen[ny][nx] = True
+                    q.append((nx, ny))
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--candidate', default='A', choices=['A', 'B'])
@@ -44,6 +79,9 @@ def main() -> None:
                 check=True, capture_output=True,
             )
             img = Image.open(cut)
+
+            # 二次精修:清除与透明区连通的残留浅色底(白椭圆/白边)。
+            _deglass(img)
             img.save(MASTER / f'{tag}.png')
             fit = img.copy()
             fit.thumbnail((512, 512), Image.LANCZOS)
