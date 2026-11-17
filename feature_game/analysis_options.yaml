@@ -1,0 +1,4 @@
+# 2026-11-12 架构审计 F4 修复：feature_game 是唯一未继承工作区
+# lint 基线的包；补齐后与本仓其余 16 个包同标准（flutter_lints +
+# strict 三项，经 base_lints 统一分发）。
+include: package:base_lints/analysis_options.yaml

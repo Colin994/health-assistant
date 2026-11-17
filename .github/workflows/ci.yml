@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch: # 允许 Actions 页面手动触发（调试用）
+
+jobs:
+  analyze-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter (stable)
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          channel: stable
+          cache: true
+
+      - name: Setup Melos
+        run: dart pub global activate melos 8.10.1
+
+      - name: Melos bootstrap
+        run: melos bootstrap
+
+      - name: Generate code (build_runner)
+        run: melos run gen
+
+      - name: Analyze (all packages)
+        run: melos run analyze
+
+      - name: Test (all packages)
+        run: melos run test
+
+  garden-goldens-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.1'
+          channel: stable
+          cache: true
+      - name: Resolve workspace
+        run: flutter pub get
+      - name: Generate required annotations
+        run: dart run melos exec --depends-on=build_runner -- "dart run build_runner build --delete-conflicting-outputs --force-jit"
+      - name: Verify pinned garden visual lane (never bless)
+        run: |
+          cd app
+          flutter test test/garden_visual_test.dart
+          cd ../feature_game
+          flutter test test/garden_scene_test.dart

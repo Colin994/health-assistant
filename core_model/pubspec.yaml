@@ -1,0 +1,11 @@
+name: core_model
+description: 全局通用业务对象模块（纯数据类，不含业务代码）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints

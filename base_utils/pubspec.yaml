@@ -1,0 +1,11 @@
+name: base_utils
+description: 全局通用工具模块（日志、时间处理等，不含 UI 代码）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints

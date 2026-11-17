@@ -1,0 +1,44 @@
+# Melos / workspace
+.dart_tool/
+.packages
+pubspec_overrides.yaml
+*.iml
+
+# build_runner
+*.g.dart
+*.config.dart
+*.freezed.dart
+*.mocks.dart
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.pub-cache/
+.pub/
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# 平台构建产物
+app/build/
+app/.flutter-plugins*
+
+# iOS 构建产物与本机 SPM 状态（不随仓库/发布分发）
+app/ios/MLKitResources/
+app/ios/**/xcshareddata/swiftpm/
+app/ios/**/.swiftpm/
+
+# iOS 本地 vendored ML Kit SPM 包（体积大，仅本机构建用）
+app/ios/vendor/
+
+# melos
+.melos_tool/
+
+# 其他
+*.log
+.DS_Store
+Thumbs.db

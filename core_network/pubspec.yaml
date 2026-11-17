@@ -1,0 +1,14 @@
+name: core_network
+description: 网络层支撑模块（dio 封装、advice/profile 接口定义、Result 模式）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  dio: ^5.11.0
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints

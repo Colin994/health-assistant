@@ -1,0 +1,25 @@
+name: feature_stretch
+description: 拉伸页模块（拉伸页 + 动作详情，深链落地页，设计稿 05–06；W2 落地）
+publish_to: none
+version: 0.1.0
+environment:
+  sdk: ^3.12.0
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  base_utils:
+    path: ../base_utils
+  core_model:
+    path: ../core_model
+  domain_all:
+    path: ../domain_all
+  feature_design_system:
+    path: ../feature_design_system
+  flutter_riverpod: ^3.0.0
+  get_it: ^9.2.1
+
+dev_dependencies:
+  base_lints:
+    path: ../base_lints
