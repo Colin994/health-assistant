@@ -52,6 +52,20 @@ void main() {
       );
       expect(theme.chipTheme.selectedColor, tokens.primarySurface);
       expect(theme.chipTheme.labelStyle!.color, tokens.primaryText);
+      expect(
+        theme.navigationBarTheme.labelTextStyle!
+            .resolve({WidgetState.selected})!
+            .color,
+        tokens.primaryText,
+      );
+      expect(
+        theme.navigationBarTheme.labelTextStyle!.resolve({})!.color,
+        tokens.textSecondary,
+      );
+      expect(
+        theme.navigationRailTheme.unselectedLabelTextStyle!.color,
+        tokens.textSecondary,
+      );
       await t.pumpWidget(
         MaterialApp(
           theme: theme,

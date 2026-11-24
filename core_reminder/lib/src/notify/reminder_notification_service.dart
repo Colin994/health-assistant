@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:base_utils/base_utils.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:injectable/injectable.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tzdata;
 import 'package:timezone/timezone.dart' as tz;
 
@@ -22,9 +21,6 @@ abstract class ReminderNotificationService {
 
   /// 冷启动时取通知动作(App 被杀后点通知启动)。
   Future<String?> takeLaunchAction();
-
-  /// 精确闹钟申请（Android 14+；拒批自动降级 inexact）。
-  Future<void> requestExactAlarmsIfNeeded();
 
   Future<void> showNow({
     required int id,
@@ -78,7 +74,6 @@ class FlutterReminderNotificationService implements ReminderNotificationService 
       FlutterLocalNotificationsPlugin();
 
   var _ready = false;
-  var _exactAllowed = false;
 
   static final AndroidNotificationDetails _channel =
       AndroidNotificationDetails(
@@ -212,34 +207,6 @@ class FlutterReminderNotificationService implements ReminderNotificationService 
   }
 
   @override
-  Future<void> requestExactAlarmsIfNeeded() async {
-    try {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      if (android == null) return;
-      // 只在首次启动申请一次;被拒后记住、永不再弹系统页(未授予时
-      // 插件会直接跳"闹钟与提醒"设置页,每次冷启动调用 = 每次劫持)。
-      // 用户之后仍可在系统设置里自行开启;拒批自动降级 inexact(±15 分)。
-      final prefs = await SharedPreferences.getInstance();
-      final deniedBefore =
-          prefs.getBool(_exactAlarmDeniedKey) ?? false;
-      if (deniedBefore) {
-        _exactAllowed = false;
-        return;
-      }
-      _exactAllowed = await android.requestExactAlarmsPermission() ?? false;
-      if (!_exactAllowed) {
-        await prefs.setBool(_exactAlarmDeniedKey, true);
-      }
-    } catch (error) {
-      _exactAllowed = false;
-      AppLogger.error('精确闹钟申请降级为 inexact（±15 分）', tag: 'notify', error: error);
-    }
-  }
-
-  static const _exactAlarmDeniedKey = 'l4_exact_alarm_denied_once';
-
-  @override
   Future<void> showNow({
     required int id,
     required String title,
@@ -273,9 +240,7 @@ class FlutterReminderNotificationService implements ReminderNotificationService 
         utc,
         _details,
         payload: payload,
-        androidScheduleMode: _exactAllowed
-            ? AndroidScheduleMode.exactAllowWhileIdle
-            : AndroidScheduleMode.inexactAllowWhileIdle,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
       );
     } catch (error) {
       AppLogger.error('排程失败 id=$id', tag: 'notify', error: error);

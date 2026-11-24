@@ -92,14 +92,14 @@ class _ValueStep extends StatelessWidget {
       backgroundColor: context.tokens.background,
       body: SafeArea(
         child: AppContentWidth(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.pageMargin,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.pageMargin,
+                ),
+                child: Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
                     onPressed: () => onIntent(const SkipPressed()),
@@ -112,28 +112,51 @@ class _ValueStep extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: AppSpacing.md),
-                const _CountdownNotificationCard(),
-                const SizedBox(height: AppSpacing.xl),
-                Text('工作间隙，记得休息', style: AppTypography.display),
-                const SizedBox(height: AppSpacing.lg),
-                const _SellingPoint(
-                  icon: Icons.schedule,
-                  title: '久坐',
-                  description: '按设置的间隔提醒你活动',
+              ),
+              Expanded(
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.pageMargin,
+                  ),
+                  children: [
+                    const SizedBox(height: AppSpacing.sm),
+                    const _CountdownNotificationCard(),
+                    const SizedBox(height: AppSpacing.xl),
+                    Text('工作间隙，记得休息', style: AppTypography.display),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      '贴合你的办公节奏，轻声提醒、不打断心流',
+                      style: AppTypography.body.copyWith(
+                        color: context.tokens.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    const _SellingPoint(
+                      icon: Icons.schedule,
+                      title: '时机准',
+                      description: '倒计时到了才提醒，专注时不打扰',
+                    ),
+                    const _SellingPoint(
+                      icon: Icons.favorite_border,
+                      title: '懂你',
+                      description: '结合你的身体状况，给做得到的微练习',
+                    ),
+                    const _SellingPoint(
+                      icon: Icons.bolt_outlined,
+                      title: '零负担',
+                      description: '久坐、喝水、护眼，每次只需 1 分钟',
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                 ),
-                const _SellingPoint(
-                  icon: Icons.favorite_border,
-                  title: '喝水',
-                  description: '到时间提醒你喝水',
+              ),
+              const _StepDots(currentStep: 1, totalSteps: 3),
+              const SizedBox(height: AppSpacing.md),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.pageMargin,
                 ),
-                const _SellingPoint(
-                  icon: Icons.bolt_outlined,
-                  title: '护眼',
-                  description: '工作间隙提醒你看向远处',
-                ),
-                Spacer(),
-                FilledButton(
+                child: FilledButton(
                   style: FilledButton.styleFrom(
                     backgroundColor: context.tokens.primaryText,
                     foregroundColor: context.tokens.onPrimary,
@@ -149,9 +172,9 @@ class _ValueStep extends StatelessWidget {
                   onPressed: () => onIntent(const NextPressed()),
                   child: Text('开始使用', style: AppTypography.subtitle),
                 ),
-                const SizedBox(height: AppSpacing.xl),
-              ],
-            ),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+            ],
           ),
         ),
       ),
@@ -283,7 +306,7 @@ class _TagsStep extends StatelessWidget {
                     Text('选择健康标签', style: AppTypography.display),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
-                      '让我们更懂你 · 可随时修改',
+                      '选出符合你的情况，之后也可以在「我的」里修改',
                       style: AppTypography.body.copyWith(
                         color: context.tokens.textSecondary,
                       ),
@@ -333,6 +356,8 @@ class _TagsStep extends StatelessWidget {
                   ],
                 ),
               ),
+              const _StepDots(currentStep: 2, totalSteps: 3),
+              const SizedBox(height: AppSpacing.md),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.pageMargin,
@@ -380,66 +405,59 @@ class _TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.md,
-        ),
-        decoration: BoxDecoration(
-          color: selected
-              ? context.tokens.primarySurface
-              : context.tokens.surface,
-          borderRadius: const BorderRadius.all(Radius.circular(AppRadius.pill)),
-          border: Border.all(
-            color: selected
-                ? context.tokens.primary
-                : context.tokens.textDisabled,
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.md,
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (selected) ...[
-              Text(
-                '已选',
-                style: AppTypography.microMedium.copyWith(
-                  color: context.tokens.primaryText,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-            ],
-            hint.isEmpty
-                ? Text(
-                    label,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: selected
-                          ? context.tokens.primaryText
-                          : context.tokens.textPrimary,
-                    ),
-                  )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: selected
-                              ? context.tokens.primaryText
-                              : context.tokens.textPrimary,
-                        ),
-                      ),
-                      Text(
-                        hint,
-                        style: AppTypography.micro.copyWith(
-                          color: context.tokens.textSecondary,
-                        ),
-                      ),
-                    ],
+          decoration: BoxDecoration(
+            color: selected
+                ? context.tokens.primarySurface
+                : context.tokens.surface,
+            borderRadius: const BorderRadius.all(
+              Radius.circular(AppRadius.pill),
+            ),
+            border: Border.all(
+              width: selected ? 1.5 : 1,
+              color: selected
+                  ? context.tokens.primaryText
+                  : context.tokens.textDisabled,
+            ),
+          ),
+          child: hint.isEmpty
+              ? Text(
+                  label,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: selected
+                        ? context.tokens.primaryText
+                        : context.tokens.textPrimary,
                   ),
-          ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: AppTypography.bodyMedium.copyWith(
+                        color: selected
+                            ? context.tokens.primaryText
+                            : context.tokens.textPrimary,
+                      ),
+                    ),
+                    Text(
+                      hint,
+                      style: AppTypography.micro.copyWith(
+                        color: context.tokens.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );
@@ -513,24 +531,11 @@ class _PermissionsStep extends StatelessWidget {
                         ),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '提醒由本地倒计时生成，不采集健康数据；'
-                                '连接手表（Pro）上线后才读取活动记录。',
-                                style: AppTypography.caption.copyWith(
-                                  color: context.tokens.textSecondary,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Text(
-                                '久坐 · 喝水 · 护眼，三类提醒均可随时关闭。',
-                                style: AppTypography.caption.copyWith(
-                                  color: context.tokens.textSecondary,
-                                ),
-                              ),
-                            ],
+                          child: Text(
+                            '本地倒计时触发，不采集任何个人健康数据',
+                            style: AppTypography.caption.copyWith(
+                              color: context.tokens.textSecondary,
+                            ),
                           ),
                         ),
                       ],
@@ -538,6 +543,8 @@ class _PermissionsStep extends StatelessWidget {
                   ],
                 ),
               ),
+              const _StepDots(currentStep: 3, totalSteps: 3),
+              const SizedBox(height: AppSpacing.md),
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.pageMargin,
@@ -568,90 +575,117 @@ class _PermissionsStep extends StatelessWidget {
   }
 }
 
-/// 设计稿 03 卡片二：连接智能手表 Pro 预告（纯展示，无授权态）。
+/// 设计稿 03 卡片二：连接智能手表 Pro 预告（整卡点击，无冗余动词）。
 class _ProWatchCard extends StatelessWidget {
   const _ProWatchCard();
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: context.tokens.surface,
-        borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: context.tokens.primarySurface,
-              shape: BoxShape.circle,
+    return InkWell(
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      onTap: () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pro 功能 · 即将上线，敬请期待')),
+        );
+      },
+      child: Container(
+        constraints: const BoxConstraints(minHeight: 44),
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: context.tokens.surface,
+          borderRadius: BorderRadius.all(Radius.circular(AppRadius.lg)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: context.tokens.primarySurface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.watch_outlined,
+                size: 22,
+                color: context.tokens.primaryText,
+              ),
             ),
-            child: Icon(
-              Icons.watch_outlined,
-              size: 22,
-              color: context.tokens.primaryText,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // 窄屏（360dp）下标题+徽标+右侧按钮同时在场会溢出：
-                    // 标题 Flexible 兜底，徽标恒可见。
-                    Flexible(
-                      child: Text('连接智能手表', style: AppTypography.subtitle),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('连接智能手表', style: AppTypography.subtitle),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    '计划支持的 Pro 功能',
+                    style: AppTypography.caption.copyWith(
+                      color: context.tokens.textSecondary,
                     ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.tokens.primaryText,
-                        borderRadius: BorderRadius.all(
-                          Radius.circular(AppRadius.pill),
-                        ),
-                      ),
-                      child: Text(
-                        'PRO',
-                        style: AppTypography.micro.copyWith(
-                          color: context.tokens.onPrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '更准的久坐判定 · 付费功能，即将上线',
-                  style: AppTypography.caption.copyWith(
-                    color: context.tokens.textSecondary,
                   ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sm,
+                vertical: 2,
+              ),
+              decoration: BoxDecoration(
+                color: context.tokens.primaryText,
+                borderRadius: BorderRadius.all(
+                  Radius.circular(AppRadius.pill),
                 ),
-              ],
+              ),
+              child: Text(
+                'PRO',
+                style: AppTypography.micro.copyWith(
+                  color: context.tokens.onPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          TextButton(
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              minimumSize: const Size(44, 44),
+            const SizedBox(width: AppSpacing.xs),
+            Icon(
+              Icons.chevron_right,
+              size: 20,
+              color: context.tokens.textSecondary,
             ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Pro 功能 · 即将上线，敬请期待')),
-              );
-            },
-            child: Text('了解更多', style: AppTypography.captionMedium),
-          ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 轻量进度指示点（替代「第 X 步，共 3 步」表单式文字，保留无障碍读屏语义）。
+class _StepDots extends StatelessWidget {
+  const _StepDots({required this.currentStep, required this.totalSteps});
+
+  final int currentStep;
+  final int totalSteps;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: '第 $currentStep 步，共 $totalSteps 步',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          for (var i = 1; i <= totalSteps; i++) ...[
+            if (i > 1) const SizedBox(width: AppSpacing.sm),
+            Container(
+              width: i == currentStep ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: i == currentStep
+                    ? context.tokens.primaryText
+                    : context.tokens.textDisabled,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -26,16 +26,163 @@ enum GardenTimeOfDay {
   }
 }
 
-/// iso 场景位图资产(按时段,edit_iso B 锚点四时段 Qwen 编辑产物)。
+/// 林边小院水粉四时段底图（同机位无植物/无装饰干净母版，运行时叠加植物与装饰）。
 const Map<GardenTimeOfDay, String> kGardenIsoAssets = {
-  GardenTimeOfDay.morning: 'assets/game/scene_morning.png',
-  GardenTimeOfDay.noon: 'assets/game/scene_noon.png',
-  GardenTimeOfDay.dusk: 'assets/game/scene_dusk.png',
-  GardenTimeOfDay.night: 'assets/game/scene_night.png',
+  GardenTimeOfDay.morning: 'assets/game/garden_woodland_morning.jpg',
+  GardenTimeOfDay.noon: 'assets/game/garden_woodland_noon.jpg',
+  GardenTimeOfDay.dusk: 'assets/game/garden_woodland_dusk.jpg',
+  GardenTimeOfDay.night: 'assets/game/garden_woodland_night.jpg',
 };
 
-/// iso 场景位图尺寸(与资产一一对应,cover 映射用)。
-const Size kGardenIsoImageSize = Size(1024, 1488);
+/// 林边小院底图原始像素尺寸（与四时段资产一一对应，cover 映射用）。
+const Size kGardenIsoImageSize = Size(768, 1376);
+
+/// 宽窗收窄世界后，用于两侧延展的边缘色。
+///
+/// 取四时段母版左右外沿（宽 3.5%）自上而下九等分带的平均色，
+/// 与紧邻的画面边缘同源，使两侧读起来是同一张画面的延续。
+/// 外层下标 0 = 左沿、1 = 右沿；每层九色按 [kGardenEdgeBandStops] 定位。
+const Map<GardenTimeOfDay, List<List<Color>>> kGardenEdgeBands = {
+  GardenTimeOfDay.morning: [
+    [
+      Color(0xFF6B6B50),
+      Color(0xFF5B5E37),
+      Color(0xFF787844),
+      Color(0xFF54623C),
+      Color(0xFF536033),
+      Color(0xFF727D3F),
+      Color(0xFF667239),
+      Color(0xFF4C5A2F),
+      Color(0xFF4A5435),
+    ],
+    [
+      Color(0xFF5E593F),
+      Color(0xFF7D7050),
+      Color(0xFF746F52),
+      Color(0xFF63644E),
+      Color(0xFF63634A),
+      Color(0xFF6D783B),
+      Color(0xFF757C39),
+      Color(0xFF6C743A),
+      Color(0xFF3F4E32),
+    ],
+  ],
+  GardenTimeOfDay.noon: [
+    [
+      Color(0xFF61694C),
+      Color(0xFF4F5829),
+      Color(0xFF717A39),
+      Color(0xFF435F30),
+      Color(0xFF435F27),
+      Color(0xFF698536),
+      Color(0xFF5A7830),
+      Color(0xFF3A5723),
+      Color(0xFF374D2A),
+    ],
+    [
+      Color(0xFF4D5339),
+      Color(0xFF70714C),
+      Color(0xFF686E4D),
+      Color(0xFF545F49),
+      Color(0xFF54634B),
+      Color(0xFF608030),
+      Color(0xFF6D872E),
+      Color(0xFF607A2E),
+      Color(0xFF264426),
+    ],
+  ],
+  GardenTimeOfDay.dusk: [
+    [
+      Color(0xFF4A3E38),
+      Color(0xFF3A3224),
+      Color(0xFF50432E),
+      Color(0xFF37362B),
+      Color(0xFF343325),
+      Color(0xFF4B452F),
+      Color(0xFF403E2C),
+      Color(0xFF2D2D23),
+      Color(0xFF292825),
+    ],
+    [
+      Color(0xFF44352F),
+      Color(0xFF664A3D),
+      Color(0xFF674E41),
+      Color(0xFF5B473E),
+      Color(0xFF584539),
+      Color(0xFF47432D),
+      Color(0xFF50472C),
+      Color(0xFF49402B),
+      Color(0xFF242623),
+    ],
+  ],
+  GardenTimeOfDay.night: [
+    [
+      Color(0xFF35484D),
+      Color(0xFF364337),
+      Color(0xFF4B5A46),
+      Color(0xFF2C463E),
+      Color(0xFF2A4437),
+      Color(0xFF3E5B45),
+      Color(0xFF345140),
+      Color(0xFF233C32),
+      Color(0xFF203736),
+    ],
+    [
+      Color(0xFF243135),
+      Color(0xFF34454D),
+      Color(0xFF445457),
+      Color(0xFF4A5654),
+      Color(0xFF3F4F4F),
+      Color(0xFF365341),
+      Color(0xFF3B5640),
+      Color(0xFF37513E),
+      Color(0xFF193331),
+    ],
+  ],
+};
+
+/// 边缘色带的中心位置（母版高度归一化，自上而下）。
+const List<double> kGardenEdgeBandStops = [
+  1 / 18,
+  3 / 18,
+  5 / 18,
+  7 / 18,
+  9 / 18,
+  11 / 18,
+  13 / 18,
+  15 / 18,
+  17 / 18,
+];
+
+/// 看星星夜空位图（`star_backdrop.png`）的原始像素尺寸。
+const Size kStarNightImageSize = Size(1024, 1488);
+
+/// 夜空位图左右外沿的边缘色，取法与 [kGardenEdgeBands] 相同：
+/// 外层下标 0 = 左沿、1 = 右沿，每层九色按 [kGardenEdgeBandStops] 定位。
+const List<List<Color>> kStarNightEdgeBands = [
+  [
+    Color(0xFF174F54),
+    Color(0xFF184E54),
+    Color(0xFF0F3D44),
+    Color(0xFF0D3A43),
+    Color(0xFF0C363E),
+    Color(0xFF082327),
+    Color(0xFF0D333D),
+    Color(0xFF021620),
+    Color(0xFF031321),
+  ],
+  [
+    Color(0xFF103A3F),
+    Color(0xFF0F3A3F),
+    Color(0xFF103B40),
+    Color(0xFF0F3B41),
+    Color(0xFF103B40),
+    Color(0xFF0E343A),
+    Color(0xFF10373E),
+    Color(0xFF082A30),
+    Color(0xFF0F2534),
+  ],
+];
 
 /// 花园 iso 场景背景:AI 生成位图(edit_iso B 锚点四时段),cover 铺底 +
 /// 顶部轻 scrim 保证状态行文字可读。进入时预热全部时段,切换零延迟。

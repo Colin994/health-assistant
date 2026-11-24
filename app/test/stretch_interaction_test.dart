@@ -24,7 +24,7 @@ void main() {
       '做完了': StretchFeedback.done,
       '稍后提醒': StretchFeedback.later,
       '今天别提醒': StretchFeedback.muteToday,
-      '关闭此类提醒': StretchFeedback.neverAgain,
+      '不再提醒此类': StretchFeedback.neverAgain,
     };
     for (final entry in feedback.entries) {
       await tester.tap(find.text(entry.key));

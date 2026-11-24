@@ -58,6 +58,7 @@ class SettingsScreen extends StatelessWidget {
             _SettingsRow(
               title: '关于',
               subtitle: '版本 ${state.version}',
+              showChevron: false,
               onTap: () => {},
             ),
             if (devEntries.isNotEmpty) ...[
@@ -88,6 +89,7 @@ class _SettingsRow extends StatelessWidget {
     required this.subtitle,
     this.onTap,
     this.badge,
+    this.showChevron = true,
   });
 
   final String title;
@@ -96,6 +98,9 @@ class _SettingsRow extends StatelessWidget {
 
   /// 标题右侧徽标（如 PRO）。
   final Widget? badge;
+
+  /// 是否展示右侧导航箭头（静态信息行可关闭）。
+  final bool showChevron;
 
   @override
   Widget build(BuildContext context) {
@@ -139,11 +144,12 @@ class _SettingsRow extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(
-              Icons.chevron_right,
-              size: 20,
-              color: context.tokens.textTertiary,
-            ),
+            if (showChevron)
+              Icon(
+                Icons.chevron_right,
+                size: 20,
+                color: context.tokens.textTertiary,
+              ),
           ],
         ),
       ),

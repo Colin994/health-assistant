@@ -47,6 +47,9 @@ class GameViewModel extends Notifier<GameState> with WidgetsBindingObserver {
   /// 金阳光在场状态(检测首次出现以触发提醒)。
   bool _goldenWasPresent = false;
 
+  /// 漏接安抚文案截止时刻(1.5 秒内展示「漏接不扣分 · 慢一点也没关系」)。
+  Duration? _catchMissHintUntil;
+
   // 看星星 eyes-free 反馈节流
   int _starCollectedCount = 0;
   int _lastStarPulseMs = 0;
@@ -87,6 +90,7 @@ class GameViewModel extends Notifier<GameState> with WidgetsBindingObserver {
     _catchSession = null;
     _starSession = null;
     _goldenWasPresent = false;
+    _catchMissHintUntil = null;
     state = state.clearedSession().copyWith(
       phase: GamePhase.idle,
       statusText: '应用切到后台,已暂停并释放相机;需要时重新开始一局',
@@ -364,11 +368,13 @@ class GameViewModel extends Notifier<GameState> with WidgetsBindingObserver {
   void _startCatchDrop() {
     final session = CatchDropSession();
     _catchSession = session;
+    _goldenWasPresent = false;
+    _catchMissHintUntil = null;
     state = state.copyWith(
       phase: GamePhase.playing,
       kind: GameKind.catchDrop,
       catchSnapshot: session.snapshot,
-      statusText: '左右倾斜,让容器接住落下的阳光',
+      statusText: '耳靠向肩轻轻侧头，移托盘接住阳光',
     );
     GameFeel.standard.onStart();
     _gameTimer?.cancel();
@@ -387,20 +393,22 @@ class GameViewModel extends Notifier<GameState> with WidgetsBindingObserver {
       dt: CatchDropConfig.standard.tickInterval,
       headRoll: _latestRel?.roll ?? 0,
     );
-    // 事件 → 触感 + UI 特效
+    // 事件 → 正向触感 + 温柔安抚(慢植物不惩罚：漏接/断连不给负向震动)
     final events = session.drainEvents();
     for (final e in events) {
       switch (e) {
         case DropCaught(:final kind, :final combo):
+          _catchMissHintUntil = null;
           if (kind == DropKind.golden) {
             GameFeel.standard.onGoldenCatch();
           } else {
             GameFeel.standard.onCatch(combo);
           }
         case ComboBroken():
-          GameFeel.standard.onComboBroken();
+          break;
         case DropMissed():
-          GameFeel.standard.onMiss();
+          _catchMissHintUntil =
+              snap.elapsed + const Duration(milliseconds: 1500);
       }
     }
     if (snap.phase == CatchDropPhase.finished) {
@@ -418,27 +426,34 @@ class GameViewModel extends Notifier<GameState> with WidgetsBindingObserver {
       catchSnapshot: snap,
       catchEvents: events,
       catchEventSeq: state.catchEventSeq + (events.isEmpty ? 0 : 1),
-      statusText: _catchStatus(snap),
+      statusText: catchStatusFor(snap),
     );
   }
 
   /// 接阳光玩法的分步引导(告诉用户「现在该做什么」)。
-  String _catchStatus(CatchDropSnapshot snap) {
-    if (snap.canFinishEarly) {
-      return '达标!可提前完成,或继续接';
-    }
+  ///
+  /// 优先级：金阳光引导 > 漏接安抚 > 达标提示 > 默认侧头引导，
+  /// 避免 40 分达标后吞掉第二颗金阳光的方向与充能提示。
+  String catchStatusFor(CatchDropSnapshot snap) {
     if (snap.goldenPresent) {
       final side = snap.goldenSide < 0 ? '左' : '右';
       if (!snap.goldenAligned) {
-        return '金阳光!把篮子移到$side侧下方';
+        return '金阳光在$side侧 · 轻轻向$side侧头';
       }
       if (!snap.goldenTiltOk) {
-        return '再向$side倾深一点,然后保持';
+        return '再向$side轻倾一点（耳靠肩），慢呼气保持';
       }
       final pct = (snap.goldenChargeProgress * 100).round();
-      return '保持住!$pct%';
+      return '慢呼气 · 向$side保持舒展 $pct%';
     }
-    return '左右倾斜,接住落下的阳光';
+    final missUntil = _catchMissHintUntil;
+    if (missUntil != null && snap.elapsed <= missUntil) {
+      return '漏接不扣分 · 慢一点也没关系';
+    }
+    if (snap.canFinishEarly) {
+      return '已达标 · 可随时提前完成，或继续放松';
+    }
+    return '耳靠向肩轻轻侧头，移托盘接住阳光';
   }
 
   Future<void> _settleCatchDrop(CatchDropSession session) async {

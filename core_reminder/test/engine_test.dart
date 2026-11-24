@@ -386,13 +386,13 @@ void main() {
     expect(fires, contains(ReminderKind.sedentary));
   });
 
-  test('文案按健康标签子集匹配（颈椎不适 → 收下巴）', () {
+  test('文案按健康标签子集匹配（颈椎不适 → 收一下下巴）', () {
     final copy = ReminderCopyProvider().copyFor(
       ReminderKind.sedentary,
       const {'颈椎不适'},
     );
     expect(copy.title, '久坐拉伸');
-    expect(copy.body, contains('收下巴'));
+    expect(copy.body, contains('收一下下巴'));
   });
 }
 

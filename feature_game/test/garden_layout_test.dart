@@ -24,7 +24,12 @@ void main() {
       final p = GardenSceneLayout.decorationAnchors['gnome']!;
       expect(
         layout.point(p),
-        layout.translation + Offset(p.dx * 1024, p.dy * 1488) * layout.scale,
+        layout.translation +
+            Offset(
+                  p.dx * GardenSceneLayout.imageSize.width,
+                  p.dy * GardenSceneLayout.imageSize.height,
+                ) *
+                layout.scale,
       );
     });
   }
@@ -111,5 +116,17 @@ void main() {
           (GardenUiTheme.ink.computeLuminance() + .05),
       greaterThanOrEqualTo(4.5),
     );
+    for (final bg in [
+      GardenUiTheme.starTop,
+      GardenUiTheme.starBottom,
+      GardenUiTheme.leafTop,
+      GardenUiTheme.leaf,
+    ]) {
+      expect(
+        (GardenUiTheme.paper.computeLuminance() + .05) /
+            (bg.computeLuminance() + .05),
+        greaterThanOrEqualTo(4.5),
+      );
+    }
   });
 }

@@ -175,40 +175,45 @@ class _DensityOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppRadius.lg),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        decoration: BoxDecoration(
-          color: selected
-              ? context.tokens.primarySurface
-              : context.tokens.background,
-          borderRadius: const BorderRadius.all(Radius.circular(AppRadius.lg)),
-          border: Border.all(
+    return Semantics(
+      selected: selected,
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          decoration: BoxDecoration(
             color: selected
-                ? context.tokens.primary
-                : context.tokens.textDisabled,
+                ? context.tokens.primarySurface
+                : context.tokens.background,
+            borderRadius: const BorderRadius.all(Radius.circular(AppRadius.lg)),
+            border: Border.all(
+              width: selected ? 1.5 : 1,
+              color: selected
+                  ? context.tokens.primaryText
+                  : context.tokens.textDisabled,
+            ),
           ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              selected ? '${density.label} · 已选' : density.label,
-              style: AppTypography.bodyMedium.copyWith(
-                color: selected
-                    ? context.tokens.primaryText
-                    : context.tokens.textPrimary,
+          child: Column(
+            children: [
+              Text(
+                density.label,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: selected
+                      ? context.tokens.primaryText
+                      : context.tokens.textPrimary,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              density.thresholdLabel,
-              style: AppTypography.caption.copyWith(
-                color: context.tokens.textSecondary,
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                density.thresholdLabel,
+                style: AppTypography.caption.copyWith(
+                  color: context.tokens.textSecondary,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

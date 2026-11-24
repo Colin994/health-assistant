@@ -15,7 +15,7 @@ class DevToolsViewModel {
     await GetIt.I<ReminderNotificationService>().showNow(
       id: ReminderNotificationIds.testId,
       title: '测试提醒',
-      body: '这是一条测试提醒——倒计时到点后，会像这样提醒你',
+      body: '如果你看到了这条通知，说明即时通知可以显示。',
     );
   }
 

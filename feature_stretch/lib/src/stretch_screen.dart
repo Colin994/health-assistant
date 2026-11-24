@@ -34,22 +34,34 @@ class StretchScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: Icon(Icons.close),
-                  tooltip: '关闭',
-                  color: context.tokens.textPrimary,
-                  onPressed: () => onIntent(const ClosePressed()),
-                ),
-              ),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(
                     horizontal: AppSpacing.pageMargin,
                   ),
                   children: [
-                    Text(state.headline, style: AppTypography.display),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            state.headline,
+                            style: AppTypography.display,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          tooltip: '关闭',
+                          color: context.tokens.textPrimary,
+                          constraints: const BoxConstraints(
+                            minWidth: 44,
+                            minHeight: 44,
+                          ),
+                          onPressed: () => onIntent(const ClosePressed()),
+                        ),
+                      ],
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       state.subCopy,
@@ -146,12 +158,14 @@ class StretchScreen extends StatelessWidget {
                       onPressed: () => onIntent(const SkipThisPressed()),
                       child: const Text('本次不做'),
                     ),
-                    _SecondaryFeedbackButton(
-                      label: '关闭此类提醒',
-                      onTap: () => onIntent(
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        foregroundColor: context.tokens.textSecondary,
+                      ),
+                      onPressed: () => onIntent(
                         const FeedbackSelected(StretchFeedback.neverAgain),
                       ),
-                      full: true,
+                      child: const Text('不再提醒此类'),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                   ],
@@ -220,12 +234,10 @@ class _SecondaryFeedbackButton extends StatelessWidget {
   const _SecondaryFeedbackButton({
     required this.label,
     required this.onTap,
-    this.full = false,
   });
 
   final String label;
   final VoidCallback onTap;
-  final bool full;
 
   @override
   Widget build(BuildContext context) {

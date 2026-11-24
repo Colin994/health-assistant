@@ -66,14 +66,14 @@ void main() {
       for (final period in GardenTimeOfDay.values) {
         expect(
           kGardenIsoAssets[period],
-          'assets/game/scene_${period.name}.png',
-          reason: 'scene_${period.name}.png 应与 GardenTimeOfDay.name 对应',
+          'assets/game/garden_woodland_${period.name}.jpg',
+          reason: 'garden_woodland_${period.name}.jpg 应与 GardenTimeOfDay.name 对应',
         );
       }
     });
 
     test('位图尺寸常量与出图规格一致', () {
-      expect(kGardenIsoImageSize, const Size(1024, 1488));
+      expect(kGardenIsoImageSize, const Size(768, 1376));
     });
   });
 }

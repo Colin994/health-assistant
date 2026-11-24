@@ -26,8 +26,10 @@ class GameScreen extends StatelessWidget {
       ),
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value:
-            state.phase == GamePhase.idle &&
-                state.gardenTime != GardenTimeOfDay.night
+            (state.phase == GamePhase.idle &&
+                    state.gardenTime != GardenTimeOfDay.night) ||
+                (state.phase != GamePhase.idle &&
+                    state.kind == GameKind.catchDrop)
             ? SystemUiOverlayStyle.dark
             : SystemUiOverlayStyle.light,
         child: Scaffold(
@@ -50,7 +52,9 @@ class GameScreen extends StatelessWidget {
                         key: const ValueKey('garden-exit'),
                         icon: Icons.close_rounded,
                         semanticLabel: '退出',
-                        onDark: state.phase != GamePhase.idle,
+                        onDark:
+                            state.phase != GamePhase.idle &&
+                            state.kind == GameKind.starGazing,
                         onTap: () => onIntent(const ExitPressed()),
                       ),
                     ),

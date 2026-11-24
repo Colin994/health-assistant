@@ -14,6 +14,7 @@ class StarGazingBoard extends StatelessWidget {
     required this.headPitch,
     required this.remainingSeconds,
     required this.totalSeconds,
+    this.backdrop = true,
     super.key,
   });
 
@@ -26,6 +27,10 @@ class StarGazingBoard extends StatelessWidget {
 
   /// 本局总时长(倒计时条归一化用)。
   final int totalSeconds;
+
+  /// 是否在棋盘内自绘夜空背景。外层已把夜空铺满整个窗口时关闭,
+  /// 棋盘只叠加动态元素。
+  final bool backdrop;
 
   static const double _maxPitch = 35;
 
@@ -66,15 +71,7 @@ class StarGazingBoard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // 2.5D 夜空背景(iso 花园世界,上 70% 天空留给星星)。
-          Image.asset(
-            'assets/game/star_backdrop.png',
-            fit: BoxFit.cover,
-            alignment: Alignment.bottomCenter,
-            // 缺图时回退纯色夜空(不阻塞玩法)。
-            errorBuilder: (_, _, _) => const ColoredBox(
-              color: Color(0xFF16241F),
-            ),
-          ),
+          if (backdrop) const StarNightBackdrop(),
           CustomPaint(
             painter: _StarGazingPainter(
               snapshot: snapshot,
@@ -126,6 +123,20 @@ class StarGazingBoard extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 看星星夜空背景:等距花园夜空位图(与花园/接阳光同一世界观)。
+/// 缺图时回退纯色夜空,不阻塞玩法。
+class StarNightBackdrop extends StatelessWidget {
+  const StarNightBackdrop({super.key});
+
+  @override
+  Widget build(BuildContext context) => Image.asset(
+    'assets/game/star_backdrop.png',
+    fit: BoxFit.cover,
+    alignment: Alignment.bottomCenter,
+    errorBuilder: (_, _, _) => const ColoredBox(color: Color(0xFF16241F)),
+  );
 }
 
 class _StarGazingPainter extends CustomPainter {

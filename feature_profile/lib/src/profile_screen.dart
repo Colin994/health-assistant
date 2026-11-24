@@ -136,7 +136,7 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 TextButton(
                   onPressed: onEditTags,
-                  child: Text(state.tags.isEmpty ? '去添加' : '编辑标签'),
+                  child: Text(state.tags.isEmpty ? '去添加' : '编辑'),
                 ),
               ],
             ),
@@ -202,7 +202,7 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                '修改后下次提醒生效',
+                '修改后，下次提醒生效',
                 style: AppTypography.caption.copyWith(
                   color: context.tokens.textSecondary,
                 ),

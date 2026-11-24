@@ -123,7 +123,18 @@ class _GardenPanelRouteState extends ConsumerState<GardenPanelRoute> {
                         ),
                       ),
                     )
-                  : Theme.of(context),
+                  : Theme.of(context).copyWith(
+                      filledButtonTheme: FilledButtonThemeData(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: GardenUiTheme.leaf,
+                          foregroundColor: GardenUiTheme.paper,
+                          minimumSize: const Size(0, 48),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                      ),
+                    ),
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: GardenPanelView(
@@ -381,11 +392,37 @@ class _PlantDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          plot.harvestable ? '已经盛开，可以收入押花册。' : '用阳光照顾它，陪它慢慢长大。',
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: context.tokens.textSecondary),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: GardenUiTheme.paperSurface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: GardenUiTheme.paperEdge),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: SizedBox(
+                  width: 72,
+                  height: 84,
+                  child: GardenPlantSprite(
+                    species: plot.species,
+                    stage: plot.stage,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                plot.harvestable ? '已经盛开，可以收入押花册。' : '用阳光照顾它，陪它慢慢长大。',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: context.tokens.textSecondary,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         Text('当前阶段 $stageAmount / 75 阳光'),
@@ -454,14 +491,51 @@ class _Shop extends StatelessWidget {
         if (next == null)
           const Text('高级种子已全部解锁')
         else ...[
-          Text('${next.name} · 需要 100 星屑'),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  color: GardenUiTheme.paperSurface,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: GardenUiTheme.paperEdge),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: SizedBox(
+                    width: 52,
+                    height: 58,
+                    child: GardenPlantSprite(species: next.id, stage: 4),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('${next.name} · 需要 100 星屑'),
+                    if (state.stardustTotal < 100) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '星屑还不够，慢慢积累就好。',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: context.tokens.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           FilledButton(
             onPressed: state.isExchangingSeed || state.stardustTotal < 100
                 ? null
                 : () => onIntent(const ExchangeAdvancedSeedPressed()),
             child: Text(state.isExchangingSeed ? '正在兑换…' : '兑换${next.name}种子'),
           ),
-          if (state.stardustTotal < 100) const Text('星屑还不够，慢慢积累就好。'),
         ],
         const SizedBox(height: 24),
         Text('花园装饰', style: Theme.of(context).textTheme.titleMedium),
@@ -525,25 +599,46 @@ class _Herbarium extends StatelessWidget {
       children: [
         Text('已收集 ${entries.length} 种 · 累计收获 ${state.harvestedCount} 次'),
         const SizedBox(height: 16),
-        if (entries.isEmpty)
-          const Text('还没有收获过花。种下一株，养到盛开后收入押花册吧。')
-        else
-          GardenCards(
-            children: [
-              for (final seed in entries)
-                Column(
-                  children: [
-                    SizedBox(
-                      height: 120,
-                      child: GardenPlantSprite(species: seed.id, stage: 4),
+        if (entries.isEmpty) ...[
+          const Text('还没有收获过花。种下一株，养到盛开后收入押花册吧。'),
+          const SizedBox(height: 16),
+        ],
+        GardenCards(
+          children: [
+            for (final seed in seedCatalog)
+              Builder(
+                builder: (context) {
+                  final count = state.harvestCounts[seed.id] ?? 0;
+                  final collected = count > 0;
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        children: [
+                          Opacity(
+                            opacity: collected ? 1 : .28,
+                            child: SizedBox(
+                              height: 108,
+                              child: GardenPlantSprite(
+                                species: seed.id,
+                                stage: 4,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            seed.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          Text(collected ? '收获 $count 次' : '待培育'),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(seed.name),
-                    Text('收获 ${state.harvestCounts[seed.id]} 次'),
-                  ],
-                ),
-            ],
-          ),
+                  );
+                },
+              ),
+          ],
+        ),
       ],
     );
   }

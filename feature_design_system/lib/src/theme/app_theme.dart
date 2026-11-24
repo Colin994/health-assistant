@@ -102,6 +102,36 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: AppColors.background,
+        indicatorColor: AppColors.primarySurface,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? AppColors.primaryText : AppColors.textSecondary,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return AppTypography.captionMedium.copyWith(
+            color: selected ? AppColors.primaryText : AppColors.textSecondary,
+          );
+        }),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: AppColors.background,
+        indicatorColor: AppColors.primarySurface,
+        selectedIconTheme: const IconThemeData(color: AppColors.primaryText),
+        unselectedIconTheme: const IconThemeData(
+          color: AppColors.textSecondary,
+        ),
+        selectedLabelTextStyle: AppTypography.captionMedium.copyWith(
+          color: AppColors.primaryText,
+        ),
+        unselectedLabelTextStyle: AppTypography.captionMedium.copyWith(
+          color: AppColors.textSecondary,
+        ),
+      ),
     );
   }
 
@@ -189,6 +219,34 @@ abstract final class AppTheme {
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: t.background,
+        indicatorColor: t.primarySurface,
+        iconTheme: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return IconThemeData(
+            color: selected ? t.primaryText : t.textSecondary,
+          );
+        }),
+        labelTextStyle: WidgetStateProperty.resolveWith((states) {
+          final selected = states.contains(WidgetState.selected);
+          return AppTypography.captionMedium.copyWith(
+            color: selected ? t.primaryText : t.textSecondary,
+          );
+        }),
+      ),
+      navigationRailTheme: NavigationRailThemeData(
+        backgroundColor: t.background,
+        indicatorColor: t.primarySurface,
+        selectedIconTheme: IconThemeData(color: t.primaryText),
+        unselectedIconTheme: IconThemeData(color: t.textSecondary),
+        selectedLabelTextStyle: AppTypography.captionMedium.copyWith(
+          color: t.primaryText,
+        ),
+        unselectedLabelTextStyle: AppTypography.captionMedium.copyWith(
+          color: t.textSecondary,
         ),
       ),
     );

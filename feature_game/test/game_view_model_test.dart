@@ -286,4 +286,97 @@ void main() {
       expect(state.statusText, isNotEmpty);
     });
   });
+
+  test('接阳光引导优先级: 40分达标后金阳光仍优先提示方向与充能, 漏接给出不扣分安抚', () {
+    fakeAsync((async) {
+      final fake = FakePoseStream();
+      final container = boot(fake: fake);
+      addTearDown(container.dispose);
+      async.elapse(Duration.zero);
+      final vm = getVm(container);
+
+      const base = CatchDropSnapshot(
+        phase: CatchDropPhase.playing,
+        containerX: 0.5,
+        elapsed: Duration(seconds: 12),
+        score: 45,
+        caughtNormal: 4,
+        caughtGolden: 1,
+        activeDrops: [],
+        goldenChargeProgress: 0,
+        goldenCharging: false,
+        canFinishEarly: true,
+        goldenPresent: false,
+        goldenSide: 0,
+      );
+      expect(vm.catchStatusFor(base), contains('已达标'));
+
+      const goldenUnaligned = CatchDropSnapshot(
+        phase: CatchDropPhase.playing,
+        containerX: 0.5,
+        elapsed: Duration(seconds: 26),
+        score: 45,
+        caughtNormal: 4,
+        caughtGolden: 1,
+        activeDrops: [],
+        goldenChargeProgress: 0,
+        goldenCharging: false,
+        canFinishEarly: true,
+        goldenPresent: true,
+        goldenSide: -1,
+        goldenAligned: false,
+        goldenTiltOk: false,
+      );
+      expect(vm.catchStatusFor(goldenUnaligned), contains('金阳光在左侧'));
+      expect(vm.catchStatusFor(goldenUnaligned), isNot(contains('已达标')));
+
+      const goldenCharging = CatchDropSnapshot(
+        phase: CatchDropPhase.playing,
+        containerX: 0.2,
+        elapsed: Duration(seconds: 27),
+        score: 45,
+        caughtNormal: 4,
+        caughtGolden: 1,
+        activeDrops: [],
+        goldenChargeProgress: 0.64,
+        goldenCharging: true,
+        canFinishEarly: true,
+        goldenPresent: true,
+        goldenSide: -1,
+        goldenAligned: true,
+        goldenTiltOk: true,
+      );
+      expect(vm.catchStatusFor(goldenCharging), '慢呼气 · 向左保持舒展 64%');
+
+      const freshDefault = CatchDropSnapshot(
+        phase: CatchDropPhase.playing,
+        containerX: 0.5,
+        elapsed: Duration(seconds: 2),
+        score: 0,
+        caughtNormal: 0,
+        caughtGolden: 0,
+        activeDrops: [],
+        goldenChargeProgress: 0,
+        goldenCharging: false,
+        canFinishEarly: false,
+        goldenPresent: false,
+        goldenSide: 0,
+      );
+      expect(vm.catchStatusFor(freshDefault), contains('耳靠向肩'));
+      expect(vm.catchStatusFor(freshDefault), isNot(contains('摇头')));
+
+      // 开局并保持头在中立位, 观察到漏接后出现温和安抚文案。
+      vm.handleIntent(const StartCatchDropPressed());
+      async.elapse(const Duration(seconds: 5));
+      var sawMissHint = false;
+      for (var i = 0; i < 400; i++) {
+        async.elapse(const Duration(milliseconds: 50));
+        if (getState(container).statusText.contains('漏接不扣分')) {
+          sawMissHint = true;
+          break;
+        }
+      }
+      expect(sawMissHint, isTrue);
+    });
+  });
 }

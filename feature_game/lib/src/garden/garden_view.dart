@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../game_state.dart';
 import '../game_intent.dart';
+import '../garden_scene.dart';
 import 'garden_panels.dart';
 import 'garden_scene_layout.dart';
 import 'garden_ui_theme.dart';
@@ -33,19 +34,16 @@ class GardenView extends StatelessWidget {
     if (state.phase != GamePhase.idle) {
       return _GardenPreparation(state: state, onIntent: onIntent);
     }
-    final stats = _GardenStats(state: state);
-    final actions = _GardenActions(
-      state: state,
-      onHerbarium: () => _panel(context, GardenPanel.herbarium),
-      onShop: () => _panel(context, GardenPanel.shop),
-      onStart: (intent) =>
-          startGardenPractice(context, state, intent, onIntent),
-    );
-    Widget scene({bool immersive = false}) => GardenSceneView(
+    void onHerbarium() => _panel(context, GardenPanel.herbarium);
+    void onShop() => _panel(context, GardenPanel.shop);
+    void onStart(GameIntent intent) =>
+        startGardenPractice(context, state, intent, onIntent);
+    Widget scene() => GardenSceneView(
       plots: state.plots,
       decorations: state.decorations,
       time: state.gardenTime,
-      immersive: immersive,
+      feedback: state.feedback,
+      immersive: true,
       onPlot: (i) => _panel(
         context,
         state.plots[i] == null ? GardenPanel.seed : GardenPanel.plant,
@@ -55,29 +53,16 @@ class GardenView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, c) {
         final expandedText = MediaQuery.textScalerOf(context).scale(14) > 19;
-        if (c.maxWidth < 840 && c.maxHeight >= 600 && !expandedText) {
-          // The world fills the screen; the interface is a handful of floating
-          // objects, not three vertically stacked application sections.
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              scene(immersive: true),
-              SafeArea(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                      child: stats,
-                    ),
-                    const Spacer(),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                      child: actions,
-                    ),
-                  ],
-                ),
-              ),
-            ],
+        // The world fills the screen; the interface is a handful of floating
+        // objects, not three vertically stacked application sections.
+        if (c.maxHeight >= 600 && !expandedText) {
+          return _GardenImmersive(
+            stage: GardenStage(Size(c.maxWidth, c.maxHeight)),
+            state: state,
+            scene: scene(),
+            onStart: onStart,
+            onShop: onShop,
+            onHerbarium: onHerbarium,
           );
         }
         // Keep one world transform even when the controls need to scroll.
@@ -85,7 +70,7 @@ class GardenView extends StatelessWidget {
         return Stack(
           fit: StackFit.expand,
           children: [
-            scene(immersive: true),
+            scene(),
             SafeArea(
               child: LayoutBuilder(
                 builder: (context, safe) => SingleChildScrollView(
@@ -97,12 +82,17 @@ class GardenView extends StatelessWidget {
                       children: [
                         Padding(
                           padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                          child: stats,
+                          child: _GardenStats(state: state),
                         ),
                         const SizedBox(height: 280),
                         Padding(
                           padding: const EdgeInsets.all(16),
-                          child: actions,
+                          child: _GardenActions(
+                            state: state,
+                            onStart: onStart,
+                            onShop: onShop,
+                            onHerbarium: onHerbarium,
+                          ),
                         ),
                       ],
                     ),
@@ -117,9 +107,146 @@ class GardenView extends StatelessWidget {
   }
 }
 
-class _GardenStats extends StatelessWidget {
-  const _GardenStats({required this.state});
+/// The scene owns the window and the controls float over it.
+///
+/// Phones and portrait tablets stack the controls top and bottom. A wide
+/// window narrows the world and, once both margins fit a rail, moves the
+/// actions beside the scene so they stop covering the near beds.
+class _GardenImmersive extends StatelessWidget {
+  const _GardenImmersive({
+    required this.stage,
+    required this.state,
+    required this.scene,
+    required this.onStart,
+    required this.onShop,
+    required this.onHerbarium,
+  });
+
+  final GardenStage stage;
   final GameState state;
+  final Widget scene;
+  final ValueChanged<GameIntent> onStart;
+  final VoidCallback onShop;
+  final VoidCallback onHerbarium;
+
+  /// Bottom actions stay in a readable cluster instead of hugging the edges.
+  static const double _actionSpan = 640;
+
+  /// Actions block inside a rail: [GardenStage.railWidth] less its margins.
+  static const double _railContent = GardenStage.railWidth - 32;
+
+  @override
+  Widget build(BuildContext context) {
+    final rails = stage.hasRails;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        _GardenWorld(stage: stage, time: state.gardenTime, child: scene),
+        SafeArea(
+          child: LayoutBuilder(
+            builder: (context, safe) => Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                  child: _GardenStats(state: state, showStatus: !rails),
+                ),
+                if (rails && state.statusText.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+                    child: Align(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: math.min(stage.worldWidth, safe.maxWidth),
+                        ),
+                        child: _GardenStatus(state.statusText),
+                      ),
+                    ),
+                  ),
+                const Spacer(),
+                Align(
+                  alignment: rails
+                      ? AlignmentDirectional.bottomEnd
+                      : Alignment.bottomCenter,
+                  child: Padding(
+                    padding: rails
+                        ? const EdgeInsetsDirectional.only(end: 16, bottom: 16)
+                        : const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: rails ? _railContent : _actionSpan,
+                      ),
+                      child: _GardenActions(
+                        state: state,
+                        onStart: onStart,
+                        onShop: onShop,
+                        onHerbarium: onHerbarium,
+                        stacked: rails,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One scene, framed by [GardenStage]: edge to edge on phones, narrowed with
+/// continuous margins on wide windows.
+class _GardenWorld extends StatelessWidget {
+  const _GardenWorld({
+    required this.stage,
+    required this.time,
+    required this.child,
+  });
+
+  final GardenStage stage;
+  final GardenTimeOfDay time;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, c) {
+        // The same transform the scene uses for its background, plants and
+        // hit targets, so the margins line up with it band by band.
+        final layout = GardenSceneLayout(
+          Size(stage.worldWidth, c.maxHeight),
+          immersive: true,
+        );
+        return GardenFramedScene(
+          width: stage.worldWidth,
+          bands: kGardenEdgeBands[time]!,
+          imageSize: GardenSceneLayout.imageSize,
+          imageTop: layout.translation.dy,
+          imageHeight: GardenSceneLayout.imageSize.height * layout.scale,
+          mirror: kGardenIsoAssets[time],
+          child: child,
+        );
+      },
+    );
+  }
+}
+
+/// A short live message on parchment, such as a failed action or used quota.
+class _GardenStatus extends StatelessWidget {
+  const _GardenStatus(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => GardenPaper(
+    child: Semantics(liveRegion: true, child: Text(text)),
+  );
+}
+
+class _GardenStats extends StatelessWidget {
+  const _GardenStats({required this.state, this.showStatus = true});
+  final GameState state;
+  final bool showStatus;
   static const _resourceTop = 60.0;
   static const _resourceHeight = 44.0;
   static const _resourceGap = 8.0;
@@ -128,25 +255,23 @@ class _GardenStats extends StatelessWidget {
   Widget build(BuildContext context) {
     final expandedText = MediaQuery.textScalerOf(context).scale(14) > 19;
     final showStardust = state.starGazeUnlocked || state.stardustTotal > 0;
-    final title = const _GardenTitleSign();
+    final title = _GardenTitleSign(hanging: !expandedText);
     final resources = _GardenResources(
       state: state,
       showStardust: showStardust,
     );
-    final status = state.statusText.isEmpty
+    final status = !showStatus || state.statusText.isEmpty
         ? null
         : Padding(
             padding: const EdgeInsets.only(top: 8),
-            child: GardenPaper(
-              child: Semantics(liveRegion: true, child: Text(state.statusText)),
-            ),
+            child: _GardenStatus(state.statusText),
           );
     if (expandedText) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Align(alignment: AlignmentDirectional.centerStart, child: title),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Align(alignment: AlignmentDirectional.centerEnd, child: resources),
           ?status,
         ],
@@ -179,19 +304,23 @@ class _GardenStats extends StatelessWidget {
 }
 
 class _GardenTitleSign extends StatelessWidget {
-  const _GardenTitleSign();
+  const _GardenTitleSign({this.hanging = true});
+  final bool hanging;
 
   @override
   Widget build(BuildContext context) => Transform.rotate(
     key: const ValueKey('garden-title-rotation'),
     angle: -3 * math.pi / 180,
     child: GardenWood(
-      hanging: true,
+      hanging: hanging,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-        child: Text(
+        padding: EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: hanging ? 12 : 6,
+        ),
+        child: const Text(
           '慢植物',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             letterSpacing: 3,
@@ -246,12 +375,21 @@ class _GardenResource extends StatelessWidget {
     void explain() => showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('$label · 当前余额 $value'),
+        backgroundColor: GardenUiTheme.paper,
+        title: Text(
+          '$label · 当前余额 $value',
+          style: const TextStyle(color: GardenUiTheme.ink),
+        ),
         content: Text(
           sunlight ? '完成接阳光练习可获得阳光，用来照顾植物或添置装饰。' : '完成看星星练习可获得星屑，用于解锁高级种子。',
+          style: const TextStyle(color: GardenUiTheme.mutedInk),
         ),
         actions: [
-          TextButton(
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: GardenUiTheme.leaf,
+              foregroundColor: GardenUiTheme.paper,
+            ),
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('知道了'),
           ),
@@ -263,42 +401,66 @@ class _GardenResource extends StatelessWidget {
       button: true,
       onTap: explain,
       excludeSemantics: true,
-      child: Material(
+      child: DecoratedBox(
         key: ValueKey(sunlight ? 'resource-sunshine' : 'resource-stardust'),
-        color: GardenUiTheme.paper,
-        borderRadius: BorderRadius.circular(10),
-        child: InkWell(
-          onTap: explain,
-          borderRadius: BorderRadius.circular(10),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    sunlight
-                        ? Icons.wb_sunny_rounded
-                        : Icons.auto_awesome_rounded,
-                    size: 20,
-                    color: sunlight
-                        ? GardenUiTheme.sunInk
-                        : GardenUiTheme.mutedInk,
-                  ),
-                  const SizedBox(width: 8),
-                  Flexible(
-                    child: Text(
-                      '$value',
-                      textAlign: TextAlign.end,
-                      style: const TextStyle(
-                        color: GardenUiTheme.ink,
-                        fontWeight: FontWeight.w600,
-                        fontFeatures: [FontFeature.tabularFigures()],
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              GardenUiTheme.paperTop.withValues(alpha: .90),
+              GardenUiTheme.paperBottom.withValues(alpha: .90),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: GardenUiTheme.paperEdge),
+          boxShadow: const [
+            BoxShadow(
+              color: GardenUiTheme.softShadow,
+              blurRadius: 10,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Material(
+          color: GardenUiTheme.groundFade,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            onTap: explain,
+            borderRadius: BorderRadius.circular(14),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      sunlight
+                          ? Icons.wb_sunny_rounded
+                          : Icons.auto_awesome_rounded,
+                      size: 20,
+                      color: sunlight
+                          ? GardenUiTheme.sunInk
+                          : GardenUiTheme.starBottom,
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '$value',
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          color: GardenUiTheme.ink,
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -314,16 +476,20 @@ class _GardenActions extends StatelessWidget {
     required this.onStart,
     required this.onShop,
     required this.onHerbarium,
+    this.stacked = false,
   });
   final GameState state;
   final ValueChanged<GameIntent> onStart;
   final VoidCallback onShop;
   final VoidCallback onHerbarium;
+
+  /// Full-width practice buttons on their own rows, for a narrow side rail.
+  final bool stacked;
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, c) {
       final largeText = MediaQuery.textScalerOf(context).scale(14) > 19;
-      final buttonWidth = largeText
+      final buttonWidth = largeText || stacked
           ? c.maxWidth
           : math.min(180.0, (c.maxWidth - 12) / 2);
       return Column(
@@ -350,17 +516,19 @@ class _GardenActions extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
+          // A narrow rail gives the caption most of the row so it stays on
+          // one line, with short rules on either side.
           Row(
             children: [
               Expanded(
                 child: Divider(
                   color: GardenUiTheme.paper.withValues(alpha: .55),
-                  indent: 12,
-                  endIndent: 12,
+                  indent: stacked ? 4 : 12,
+                  endIndent: stacked ? 4 : 12,
                 ),
               ),
               Expanded(
-                flex: 3,
+                flex: stacked ? 9 : 3,
                 child: Text(
                   state.quotaRemaining <= 0
                       ? '今日光照已足，明天再练'
@@ -378,8 +546,8 @@ class _GardenActions extends StatelessWidget {
               Expanded(
                 child: Divider(
                   color: GardenUiTheme.paper.withValues(alpha: .55),
-                  indent: 12,
-                  endIndent: 12,
+                  indent: stacked ? 4 : 12,
+                  endIndent: stacked ? 4 : 12,
                 ),
               ),
             ],
@@ -394,11 +562,11 @@ class _GardenActions extends StatelessWidget {
                 width: buttonWidth,
                 child: GardenPlayButton(
                   label: '接阳光',
-                  primary: true,
+                  style: GardenButtonStyle.honey,
                   icon: const Icon(
                     Icons.wb_sunny_rounded,
                     color: GardenUiTheme.ink,
-                    size: 28,
+                    size: 26,
                   ),
                   onPressed: () => onStart(const StartCatchDropPressed()),
                 ),
@@ -407,6 +575,9 @@ class _GardenActions extends StatelessWidget {
                 width: buttonWidth,
                 child: GardenPlayButton(
                   label: '看星星',
+                  style: state.starGazeUnlocked
+                      ? GardenButtonStyle.starlight
+                      : GardenButtonStyle.disabled,
                   hint: state.starGazeUnlocked ? '看星星 · 40 秒仰头练习' : '首株植物盛开后解锁',
                   icon: GardenStarIcon(locked: !state.starGazeUnlocked),
                   onPressed: () => onStart(const StartStarGazingPressed()),
@@ -433,29 +604,26 @@ class _GardenUtility extends StatelessWidget {
   Widget build(BuildContext context) => Tooltip(
     message: label,
     child: GardenWood(
-      child: Material(
-        color: GardenUiTheme.groundFade,
-        borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: GardenUiTheme.paper, size: 26),
-                const SizedBox(height: 4),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    color: GardenUiTheme.paper,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+      onTap: onTap,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 68, minHeight: 60),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: GardenUiTheme.paper, size: 24),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: GardenUiTheme.paper,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -475,10 +643,10 @@ class GardenStarIcon extends StatelessWidget {
       height: 28,
       child: Stack(
         children: [
-          const Icon(
+          Icon(
             Icons.dark_mode_rounded,
             size: 25,
-            color: GardenUiTheme.ink,
+            color: locked ? GardenUiTheme.mutedInk : GardenUiTheme.paper,
           ),
           if (locked)
             Positioned(
@@ -494,7 +662,7 @@ class GardenStarIcon extends StatelessWidget {
                   child: Icon(
                     Icons.lock_rounded,
                     size: 12,
-                    color: GardenUiTheme.ink,
+                    color: GardenUiTheme.mutedInk,
                   ),
                 ),
               ),
@@ -528,8 +696,13 @@ class _GardenPreparation extends StatelessWidget {
               const SizedBox(height: 16),
               Text(
                 state.phase == GamePhase.countdown
-                    ? '保持自然坐姿，即将开始'
-                    : state.statusText,
+                    ? (state.kind == GameKind.catchDrop
+                          ? '沉肩平视，准备左右轻轻侧头（耳靠向肩）'
+                          : '保持自然坐姿，即将开始')
+                    : (state.phase == GamePhase.calibrating &&
+                              state.kind == GameKind.catchDrop
+                          ? '请自然平视屏幕，正在记录你的舒适中立位'
+                          : state.statusText),
               ),
               const SizedBox(height: 20),
               if (state.phase == GamePhase.error)
@@ -622,24 +795,45 @@ Future<void> _showPracticePrompt(
   // Every start explains the actual duration; system permission is requested only
   // by the pose service after this explicit acknowledgement.
   final first = !(prefs.getBool(key) ?? false);
+  final isCatch = intent is StartCatchDropPressed;
   final agreed = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
+      backgroundColor: isCatch ? GardenUiTheme.paper : null,
       title: Text(
-        intent is StartStarGazingPressed ? '看星星 · 40 秒' : '接阳光 · 40 秒',
+        isCatch ? '接阳光 · 40 秒' : '看星星 · 40 秒',
+        style: isCatch
+            ? const TextStyle(
+                color: GardenUiTheme.ink,
+                fontWeight: FontWeight.w700,
+              )
+            : null,
       ),
       content: SingleChildScrollView(
-        child: Text(
-          '将手机放稳，保持自然坐姿。练习时用前置摄像头读取头部动作。'
-          '${first ? '画面只在本机处理，不保存、不上传。' : ''}感觉不适可随时停止。',
-        ),
+        child: isCatch
+            ? _CatchPracticeGuideContent(firstTime: first)
+            : Text(
+                '将手机放稳，保持自然坐姿。练习时用前置摄像头读取头部动作。'
+                '${first ? '画面只在本机处理，不保存、不上传。' : ''}感觉不适可随时停止。',
+              ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('先不练'),
+          child: Text(
+            '先不练',
+            style: isCatch
+                ? const TextStyle(color: GardenUiTheme.mutedInk)
+                : null,
+          ),
         ),
         FilledButton(
+          style: isCatch
+              ? FilledButton.styleFrom(
+                  backgroundColor: GardenUiTheme.honey,
+                  foregroundColor: GardenUiTheme.ink,
+                )
+              : null,
           onPressed: () => Navigator.of(context).pop(true),
           child: const Text('开始练习'),
         ),
@@ -650,4 +844,74 @@ Future<void> _showPracticePrompt(
   await prefs.setBool(key, true);
   if (!context.mounted) return;
   onIntent(intent);
+}
+
+class _CatchPracticeGuideContent extends StatelessWidget {
+  const _CatchPracticeGuideContent({required this.firstTime});
+
+  final bool firstTime;
+
+  @override
+  Widget build(BuildContext context) {
+    const steps = [
+      ('1. 轻缓侧头移托盘', '耳靠向肩微倾即可，不用用力甩头'),
+      ('2. 接蜜色小阳光', '光滴自然直落，漏接不扣分、放轻松就好'),
+      ('3. 金阳光保持充能', '大太阳出现时慢呼气保持 2.5 秒，达标可提前完成'),
+    ];
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: GardenUiTheme.honeyTint,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: GardenUiTheme.paperEdge),
+          ),
+          child: const Text(
+            '久坐易肩颈僵硬。耳向肩方向轻轻侧头（不是左右摇头），配合自然呼吸柔和拉开颈侧。',
+            style: TextStyle(color: GardenUiTheme.ink, height: 1.45),
+          ),
+        ),
+        const SizedBox(height: 12),
+        for (final (title, desc) in steps) ...[
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: GardenUiTheme.paperSurface,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: GardenUiTheme.ink,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  desc,
+                  style: const TextStyle(
+                    color: GardenUiTheme.mutedInk,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 4),
+        Text(
+          '慢节奏 · 不惩罚：随时可停，感觉不适立即结束。'
+          '${firstTime ? '前置摄像头仅在本机识别头姿，不保存、不上传。' : ''}',
+          style: const TextStyle(color: GardenUiTheme.mutedInk, fontSize: 12),
+        ),
+      ],
+    );
+  }
 }

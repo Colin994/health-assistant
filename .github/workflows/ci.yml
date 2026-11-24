@@ -29,6 +29,13 @@ jobs:
       - name: Generate code (build_runner)
         run: melos run gen
 
+      - name: Design and project skill contracts
+        run: |
+          python3 tools/check_design.py
+          python3 tools/check_project_skills.py
+          python3 tools/garden_asset_inventory.py
+          python3 tools/device_walkthrough.py --check-contract
+
       - name: Analyze (all packages)
         run: melos run analyze
 

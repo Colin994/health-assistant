@@ -96,7 +96,7 @@ class _CatchDropPreviewScreenState extends State<CatchDropPreviewScreen> {
         fit: StackFit.expand,
         children: [
           const Image(
-            image: AssetImage('assets/game/backdrop_catch.png'),
+            image: AssetImage('assets/game/catch_clearing.jpg'),
             fit: BoxFit.cover,
             alignment: Alignment.bottomCenter,
           ),

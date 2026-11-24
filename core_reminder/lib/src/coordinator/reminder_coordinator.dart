@@ -38,7 +38,7 @@ class ReminderCoordinator with WidgetsBindingObserver {
     if (_started) return;
     _started = true;
     await _notif.init();
-    await _notif.requestExactAlarmsIfNeeded();
+    await _notif.requestPermission();
     WidgetsBinding.instance.addObserver(this);
 
     _fireSub = _engine.fires.listen((f) {
